@@ -5,13 +5,13 @@ namespace RayTracingEngine.Math;
 public class MatrixTransformation
 {
     /// <summary>
-    /// For translation of a matrix
+    /// Translates a matrix by x, y, and z
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
     /// <param name="z"></param>
     /// <returns></returns>
-    public static Matrix4x4 CreateTranslation(float x, float y, float z)
+    public static Matrix4x4 CreateTranslation(float x = 1.0f, float y = 1.0f, float z = 1.0f)
     {
         // 1 0 0 x
         // 0 1 0 y
@@ -45,7 +45,7 @@ public class MatrixTransformation
     /// <summary>
     /// For a rotation around the Z axis
     /// </summary>
-    /// <param name="angle"></param>
+    /// <param name="angle">Angle in Radians</param>
     /// <returns></returns>
     public static Matrix4x4 CreateRotationZ(float angle)
     {
@@ -53,8 +53,8 @@ public class MatrixTransformation
         // sin  cos 0 0
         // 0    0   1 0
         // 0    0   0 1
-        var cos = (float)System.Math.Cos(angle);
-        var sin = (float)System.Math.Sin(angle);
+        var cos = MathF.Cos(angle);
+        var sin = MathF.Sin(angle);
         
         return new Matrix4x4(cos, -sin, 0, 0,
                              sin, cos,  0, 0,
@@ -65,7 +65,7 @@ public class MatrixTransformation
     /// <summary>
     /// For a rotation around the Y axis
     /// </summary>
-    /// <param name="angle"></param>
+    /// <param name="angle">Angle in Radians</param>
     /// <returns></returns>
     public static Matrix4x4 CreateRotationY(float angle)
     {
@@ -73,8 +73,8 @@ public class MatrixTransformation
         // 0   1 0   0
         // -sin 0 cos 0
         // 0   0 0   1
-        var cos = (float)System.Math.Cos(angle);
-        var sin = (float)System.Math.Sin(angle);
+        var cos = MathF.Cos(angle);
+        var sin = MathF.Sin(angle);
         
         return new Matrix4x4(cos, 0, sin, 0,
                              0,   1, 0,   0,
@@ -85,7 +85,7 @@ public class MatrixTransformation
     /// <summary>
     /// For a rotation around the X axis
     /// </summary>
-    /// <param name="angle"></param>
+    /// <param name="angle">Angle in Radians</param>
     /// <returns></returns>
     public static Matrix4x4 CreateRotationX(float angle)
     {
@@ -93,8 +93,8 @@ public class MatrixTransformation
         // 0 cos -sin 0
         // 0 sin  cos 0
         // 0 0    0   1
-        var cos = (float)System.Math.Cos(angle);
-        var sin = (float)System.Math.Sin(angle);
+        var cos = MathF.Cos(angle);
+        var sin = MathF.Sin(angle);
         
         return new Matrix4x4(1, 0,    0,   0,
                              0, cos, -sin, 0,
@@ -103,4 +103,15 @@ public class MatrixTransformation
     }
     
     
+    /// <summary>
+    /// Rotates around the X, Y, and Z axis
+    /// </summary>
+    /// <param name="x">X angle in radians</param>
+    /// <param name="y">Y angle in radians</param>
+    /// <param name="z">Z angle in radians</param>
+    /// <returns></returns>
+    public static Matrix4x4 CreateRotation(float x, float y, float z)
+    {
+        return CreateRotationX(x) * CreateRotationY(y) * CreateRotationZ(z);
+    }
 }

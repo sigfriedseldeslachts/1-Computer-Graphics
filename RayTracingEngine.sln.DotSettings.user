@@ -2,8 +2,7 @@
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AMatrix4x4_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003F_002Econfig_003FJetBrains_003FRider2024_002E2_003Fresharper_002Dhost_003FDecompilerCache_003Fdecompiler_003Fa3d113b54764431792186a5608f0087db2d000_003F10_003F28a7da66_003FMatrix4x4_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1ac450ad_002D175f_002D454a_002Da7e3_002Dbb30a54220ee/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="TestTranslation" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
-    &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Math.MatrixTransformationUnitTest.TestTranslation&lt;/TestId&gt;
-    &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Math.MatrixTransformationUnitTest.TestScale&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Math.MatrixTransformationUnitTest&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=8f7ff0e2_002D5e53_002D4cf1_002D99a1_002D4c2e302096af/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
