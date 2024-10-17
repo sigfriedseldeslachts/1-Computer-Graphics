@@ -40,12 +40,46 @@ public class Sphere : Object
         Console.WriteLine(discriminant);
         if (discriminant < 0.0f) return null;
         
+        var sqrtDiscriminant = MathF.Sqrt(discriminant);
+        var t0 = (-b - sqrtDiscriminant) / (2 * a);
+        var t1 = (-b + sqrtDiscriminant) / (2 * a);
+        
+        var hits = new List<HitPoint>();
+        
+        if (t0 > 0.00001)
+        {
+            var hit = ray.GetPoint(t0);
+            hits.Add(new HitPoint()
+            {
+                HitTime = t0,
+                Point = hit,
+                Normal = GetNormal(hit),
+                IsEntering = true
+            });
+        }
+
+        if (t1 > 0.00001)
+        {
+            var hit = ray.GetPoint(t1);
+            hits.Add(new HitPoint()
+            {
+                HitTime = t1,
+                Point = hit,
+                Normal = GetNormal(hit),
+                IsEntering = false
+            });
+        }
+        
+        
         return new HitInfo
         {
             Object = this,
-            //Point = ray.Origin,
-            //Normal = ray.Origin,
-            //Distance = 0
+            Hits = hits.ToArray()
         };
+    }
+    
+    public Vector3 GetNormal(Vector3 point)
+    {
+        return Vector3.Normalize(point - new Vector3(_x, _y, _z));
     }
 }
