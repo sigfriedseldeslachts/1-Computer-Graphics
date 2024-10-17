@@ -8,10 +8,10 @@ public class Cube : Object
     private float _size;
     private Vector3 _position;
 
-    public Cube(float size, Vector3 position)
+    public Cube(Vector3 position, float size)
     {
-        _size = size;
         _position = position;
+        _size = size;
     }
     
     public override HitInfo? HitLocal(Ray ray)

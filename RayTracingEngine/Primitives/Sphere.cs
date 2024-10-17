@@ -21,6 +21,14 @@ public class Sphere : Object
         this._radius = _radius;
     }
     
+    public Sphere(Vector3 position, float radius)
+    {
+        _x = position.X;
+        _y = position.Y;
+        _z = position.Z;
+        _radius = radius;
+    }
+    
     public override HitInfo? HitLocal(Ray ray)
     {
         if (ray.Direction == Vector3.Zero) return null;
@@ -37,7 +45,6 @@ public class Sphere : Object
         var c = ray.Start.LengthSquared() - MathF.Pow(_radius, 2);
 
         var discriminant = MathF.Pow(b, 2) - 4 * a * c;
-        Console.WriteLine(discriminant);
         if (discriminant < 0.0f) return null;
         
         var sqrtDiscriminant = MathF.Sqrt(discriminant);
@@ -46,7 +53,7 @@ public class Sphere : Object
         
         var hits = new List<HitPoint>();
         
-        if (t0 > 0.00001)
+        if (t0 > 0.00001 || t0 == 0)
         {
             var hit = ray.GetPoint(t0);
             hits.Add(new HitPoint()

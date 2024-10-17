@@ -11,10 +11,10 @@ public class Program
         // Create a ray from the origin to the point (1, 1, 1)
         var ray = new Ray(new Vector3(0, 5, 1.0f), new Vector3(0, -0.5f, -0.1f));
 
-        var cube = new Cube(1, Vector3.Zero);
+        var obj = new Sphere(Vector3.Zero, 1);
         
         // Check if the ray intersects with the sphere
-        var hitInfo = cube.Hit(ray);
+        var hitInfo = obj.HitLocal(ray);
         
         if (hitInfo != null)
         {
