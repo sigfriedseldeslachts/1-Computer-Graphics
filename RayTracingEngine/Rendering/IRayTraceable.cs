@@ -11,6 +11,7 @@ public interface IRayTraceable
     
     /// <summary>
     /// Check if the ray intersects with the object. The ray is in world space.
+    /// The ray should be transformed to local space before calling HitLocal.
     /// </summary>
     /// <param name="ray"></param>
     /// <returns></returns>

@@ -77,7 +77,7 @@ public class Sphere : Object
             });
         }
         
-        
+        if (hits.Count == 0) return null;
         return new HitInfo
         {
             Object = this,

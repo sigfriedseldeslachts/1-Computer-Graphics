@@ -97,6 +97,7 @@ public class Cube : Object
             });
         }
         
+        if (hits.Count == 0) return null;
         return new HitInfo()
         {
             Object = this,
