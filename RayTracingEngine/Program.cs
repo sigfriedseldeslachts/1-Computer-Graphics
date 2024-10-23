@@ -8,19 +8,17 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var ray = new Ray(new Vector3(2,2,2),  new Vector3(0.5f, 0.5f, 0.5f));
-        var obj = new Cube(Vector3.Zero, 1);
+        int width = 1280, height = 720;
         
-        // Check if the ray intersects with the sphere
-        var hitInfo = obj.HitLocal(ray);
+        // Create the window object
+        var window = new ViewWindow(width, height);
+        var camera = new Camera(Vector3.Zero, width, height);
         
-        if (hitInfo != null)
-        {
-            Console.WriteLine($"Hits: {hitInfo.Hits.Length}");
-        }
-        else
-        {
-            Console.WriteLine("No hit");
-        }
+        /*var obj = new Sphere(Vector3.Zero, 1);
+        camera.AddObject(obj);
+        
+        camera.Render();*/
+        
+        window.Run();
     }
 }

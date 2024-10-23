@@ -2,29 +2,43 @@ using System.Numerics;
 
 namespace RayTracingEngine.Rendering;
 
-public class Camera
+public class Camera(Vector3 position, int width, int height)
 {
-    private readonly uint _width = 640;
-    private readonly uint _height = 480;
-
-    public Vector3 Position { get; set; } = Vector3.Zero;
+    public Vector3 Position { get; set; } = position;
+    public int Width { get; set; } = width;
+    public int Height { get; set; } = height;
+    
+    public readonly List<IRayTraceable> Objects = new List<IRayTraceable>();
+    public readonly List<HitInfo> Hits = new List<HitInfo>();
 
     public void Render()
     {
-        for (uint y = 0; y < _height; y++)
+        Hits.Clear();
+        
+        for (var rowPos = 0; rowPos < Height; rowPos++)
         {
-            for (uint x = 0; x < _width; x++)
+            for (var colPos = 0; colPos < Width; colPos++)
             {
-                // Calculate the ray direction
-                var rayDirection = new Vector3(
-                    x / (float)_width - 0.5f,
-                    y / (float)_height - 0.5f,
-                    1 // Distance to the screen
-                );
+                // We want the center to be X = 0, Y = 0. Thus, we need to shift everything by half the width and height
+                var x = colPos - Width / 2;
+                var y = rowPos - Height / 2;
 
-                // Create the ray
-                var ray = new Ray(Position, rayDirection);
+                // Now we need to create a ray direction
+                var direction = Vector3.Normalize(new Vector3(x, y, -position.Z));
+                var ray = new Ray(Position, direction);
+
+                // For each object, check if the ray intersects with it
+                foreach (var hitInfo in Objects.Select(obj => obj.Hit(ray)).OfType<HitInfo>())
+                {
+                    Hits.Add(hitInfo);
+                    Console.WriteLine("Hit at ray originating from x: {0}, y: {1}", x, y);
+                }
             }
         }
+    }
+    
+    public void AddObject(IRayTraceable obj)
+    {
+        Objects.Add(obj);
     }
 }
