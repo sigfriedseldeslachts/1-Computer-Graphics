@@ -7,6 +7,7 @@ namespace RayTracingEngine.Rendering;
 public class Camera(Vector3 position, int width, int height)
 {
     public Vector3 Position { get; set; } = position;
+    public float NearPlaneDistance { get; set; } = 5;
     public int Width { get; set; } = width;
     public int Height { get; set; } = height;
     
@@ -23,6 +24,9 @@ public class Camera(Vector3 position, int width, int height)
         HitInfo? hitInfo;
         var ray = new Ray(Position, Vector3.Zero);
         
+        var H = NearPlaneDistance * MathF.Tan(MathF.PI / 4);
+        var W = H * ((float) Width / Height); // H * Aspect ratio
+        
         for (rowPos = 0; rowPos < Height; rowPos++)
         {
             for (colPos = 0; colPos < Width; colPos++)
@@ -31,8 +35,8 @@ public class Camera(Vector3 position, int width, int height)
                 Hits.Clear();
                 
                 // We want the center to be X = 0, Y = 0. Thus, we need to shift everything by half the width and height
-                var x = colPos - Width / 2;
-                var y = rowPos - Height / 2;
+                var x = W * (2*colPos / (float) Width - 1);
+                var y = H * (2*rowPos / (float) Height - 1);
 
                 // Now we need to create a ray direction
                 ray.Direction = Vector3.Normalize(new Vector3(x, y, -position.Z));
