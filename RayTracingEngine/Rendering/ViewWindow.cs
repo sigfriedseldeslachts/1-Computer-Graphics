@@ -11,13 +11,21 @@ public class ViewWindow
     public int Height { get; }
     public IWindow Window { get; private set; }
     public OpenGLRenderer GlRenderer { get; private set; }
+    public Camera Camera { get; private set; }
     
-    public ViewWindow(int width, int height)
+    public ViewWindow(int width, int height, Camera camera)
     {
         Width = width;
         Height = height;
+        Camera = camera;
         
         CreateWindow();
+    }
+    
+    public void Run()
+    {
+        Window.Run();
+        Window.Dispose();
     }
 
     private void CreateWindow()
@@ -32,21 +40,23 @@ public class ViewWindow
         {
             GlRenderer = new OpenGLRenderer(Window);
         };
-        Window.Render += Draw;
+        Window.Update += (deltaTime) =>
+        {
+            Camera.Render();
+        };
+        Window.Render += (deltaTime) =>
+        {
+            GlRenderer.SetTextureFromBitmap(Camera.Image);
+            Draw();
+        };
         Window.Closing += () =>
         {
             GlRenderer.Dispose();
         };
     }
     
-    private void Draw(double deltaTime)
+    private void Draw()
     {
         GlRenderer.Draw();
-    }
-    
-    public void Run()
-    {
-        Window.Run();
-        Window.Dispose();
     }
 }

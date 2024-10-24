@@ -10,14 +10,14 @@ public class Program
     {
         int width = 1280, height = 720;
         
+        // Create a sphere at the center of the screen
+        var sphere = new Sphere(new Vector3(0, 0, 0), 1);
+        
+        var camera = new Camera(new Vector3(0, 0, 10), width, height);
+        camera.AddObject(sphere);
+        
         // Create the window object
-        var window = new ViewWindow(width, height);
-        var camera = new Camera(Vector3.Zero, width, height);
-        
-        /*var obj = new Sphere(Vector3.Zero, 1);
-        camera.AddObject(obj);
-        
-        camera.Render();*/
+        var window = new ViewWindow(width, height, camera);
         
         window.Run();
     }

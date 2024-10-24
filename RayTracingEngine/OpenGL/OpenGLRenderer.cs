@@ -1,21 +1,26 @@
+using System.Runtime.CompilerServices;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace RayTracingEngine.OpenGL;
 
 public class OpenGLRenderer
 {
     private static float[] vertices = {
-        1,  1, 0,  // top right
-        1, -1, 0,  // bottom right
-       -1, -1, 0,  // bottom left
-       -1,  1, 0   // top left 
+        // Positions  // Texture Coords
+        1,  1, 0,     1, 1, // top right
+        1, -1, 0,     1, 0, // bottom right
+       -1, -1, 0,     0, 0, // bottom left
+       -1,  1, 0,     0, 1  // top left 
     };
     private static int[] indices = [0,1,2, 0,2,3];
     
     private readonly GL _gl;
     private readonly OpenGLShader _shader;
-    private uint _vao, _vbo, _ebo;
+    private uint _vao, _vbo, _ebo, _texture;
+    private byte[] pixelBuffer = [];
 
     public OpenGLRenderer(IWindow window)
     {
@@ -55,8 +60,36 @@ public class OpenGLRenderer
         {
             _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) indices.Length * 4, i, BufferUsageARB.StaticDraw);
         }
-        _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), null);
+        
+        //// Vertex Attribute Pointers
+        // Position attribute
+        _gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), null);
         _gl.EnableVertexAttribArray(0);
+        // Texture coord attribute
+        _gl.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), (void*) (3 * sizeof(float)));
+        _gl.EnableVertexAttribArray(1);
+        
+        // Create texture object
+        _texture = _gl.GenTexture();
+        _gl.ActiveTexture(TextureUnit.Texture0);
+        _gl.BindTexture(TextureTarget.Texture2D, _texture);
+    }
+    
+    public unsafe void SetTextureFromBitmap(Image<Rgba32> image)
+    {
+        // Get the pixel buffer
+        pixelBuffer = new byte[image.Width * image.Height * Unsafe.SizeOf<Rgba32>()];
+        image.CopyPixelDataTo(pixelBuffer);
+        
+        _gl.BindTexture(TextureTarget.Texture2D, _texture);
+        fixed (byte* ptr = pixelBuffer)
+        {
+            _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba32f, (uint) image.Width, (uint) image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
+        }
+        _gl.GenerateMipmap(TextureTarget.Texture2D);
+        
+        // Clear the pixel buffer
+        pixelBuffer = [];
     }
     
     public unsafe void Draw()
@@ -66,6 +99,9 @@ public class OpenGLRenderer
         
         _gl.BindVertexArray(_vao);
         _shader.Use();
+        
+        _gl.ActiveTexture(TextureUnit.Texture0);
+        _gl.BindTexture(TextureTarget.Texture2D, _texture);
         
         _gl.DrawElements(GLEnum.Triangles, (uint) indices.Length, GLEnum.UnsignedInt, null);
     }
