@@ -11,4 +11,9 @@ public class Ray(Vector3 start, Vector3 direction)
     {
         return Start + t * Direction;
     }
+    
+    public Ray Transform(Matrix4x4 matrix)
+    {
+        return new Ray(Vector3.Transform(Start, matrix), Vector3.Transform(Direction, matrix));
+    }
 }

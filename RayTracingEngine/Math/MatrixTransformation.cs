@@ -22,6 +22,16 @@ public class MatrixTransformation
                              0, 0, 1, z,
                              0, 0, 0, 1);
     }
+    
+    /// <summary>
+    /// Translates a matrix by a Vector3
+    /// </summary>
+    /// <param name="translation"></param>
+    /// <returns></returns>
+    public static Matrix4x4 CreateTranslation(Vector3 translation)
+    {
+        return CreateTranslation(translation.X, translation.Y, translation.Z);
+    }
 
     /// <summary>
     /// For scaling a matrix

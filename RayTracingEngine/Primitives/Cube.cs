@@ -6,11 +6,9 @@ namespace RayTracingEngine.Primitives;
 public class Cube : Object
 {
     private float _size;
-    private Vector3 _position;
 
-    public Cube(Vector3 position, float size)
+    public Cube(Vector3 position, float size) : base(position)
     {
-        _position = position;
         _size = size;
     }
     
@@ -76,7 +74,7 @@ public class Cube : Object
         
         if (tIn > 0.00001)
         {
-            hits.Add(new HitPoint()
+            hits.Add(new HitPoint
             {
                 HitTime = tIn,
                 Point = ray.GetPoint(tIn),
@@ -87,7 +85,7 @@ public class Cube : Object
         
         if (tOut > 0.00001)
         {
-            hits.Add(new HitPoint()
+            hits.Add(new HitPoint
             {
                 HitTime = tOut,
                 Point = ray.GetPoint(tOut),
@@ -98,7 +96,7 @@ public class Cube : Object
         }
         
         if (hits.Count == 0) return null;
-        return new HitInfo()
+        return new HitInfo
         {
             Object = this,
             Hits = hits.ToArray()

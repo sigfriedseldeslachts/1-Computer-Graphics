@@ -5,28 +5,12 @@ namespace RayTracingEngine.Primitives;
 
 public class Sphere : Object
 {
-    private float _x, _y, _z, _radius;
+    private readonly float _radius;
     
-    public Sphere(float x, float y, float z, float _radius)
+    public Sphere(Vector3 position, float radius) : base(position)
     {
-        // X Y Z Must be smaller than 1
-        if (x > 1 || y > 1 || z > 1)
-        {
-            throw new System.Exception("X Y Z Must be smaller than 1");
-        }
-        
-        _x = x;
-        _y = y;
-        _z = z;
-        this._radius = _radius;
-    }
-    
-    public Sphere(Vector3 position, float radius)
-    {
-        _x = position.X;
-        _y = position.Y;
-        _z = position.Z;
         _radius = radius;
+        BuildTransformMatrix(position, Vector3.One, Vector3.One);
     }
     
     public override HitInfo? HitLocal(Ray ray)
@@ -56,7 +40,7 @@ public class Sphere : Object
         if (t0 > 0.00001 || t0 == 0)
         {
             var hit = ray.GetPoint(t0);
-            hits.Add(new HitPoint()
+            hits.Add(new HitPoint
             {
                 HitTime = t0,
                 Point = hit,
@@ -68,7 +52,7 @@ public class Sphere : Object
         if (t1 > 0.00001)
         {
             var hit = ray.GetPoint(t1);
-            hits.Add(new HitPoint()
+            hits.Add(new HitPoint
             {
                 HitTime = t1,
                 Point = hit,
@@ -87,6 +71,6 @@ public class Sphere : Object
     
     public Vector3 GetNormal(Vector3 point)
     {
-        return Vector3.Normalize(point - new Vector3(_x, _y, _z));
+        return Vector3.Normalize(point - GlobalPosition);
     }
 }

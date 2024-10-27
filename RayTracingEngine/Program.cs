@@ -11,7 +11,7 @@ public class Program
         int width = 1280, height = 720;
         
         // Create a sphere at the center of the screen
-        var sphere = new Sphere(new Vector3(0, 0, 0), 1);
+        var sphere = new Sphere(new Vector3(5, 0, -5), 1);
         
         var camera = new Camera(new Vector3(0, 0, 10), width, height);
         camera.AddObject(sphere);

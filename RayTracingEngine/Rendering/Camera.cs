@@ -54,7 +54,7 @@ public class Camera(Vector3 position, int width, int height)
             }
         }
         
-        Console.WriteLine("Done");
+        Console.WriteLine("Frame rendered");
     }
 
     public void DrawPixel(int x, int y, List<HitInfo> hits)
