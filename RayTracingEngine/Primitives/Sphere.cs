@@ -5,15 +5,12 @@ namespace RayTracingEngine.Primitives;
 
 public class Sphere : Object
 {
-    private readonly float _radius;
-    
-    public Sphere(Vector3 position, float radius) : base(position)
+    public Sphere(Vector3 position, Vector3 rotation, Vector3 scale) : base(position, rotation, scale)
     {
-        _radius = radius;
-        BuildTransformMatrix(position, Vector3.One, Vector3.One);
+        BuildTransformMatrix(position, rotation, scale);
     }
     
-    public override HitInfo? HitLocal(Ray ray)
+    public override HitInfo? HitLocal(Ray ray, bool transformBack = true)
     {
         if (ray.Direction == Vector3.Zero) return null;
         
@@ -26,7 +23,7 @@ public class Sphere : Object
 
         var a = ray.Direction.LengthSquared(); // Same as dot(ray.Direction, ray.Direction)
         var b = 2 * Vector3.Dot(ray.Direction, ray.Start);
-        var c = ray.Start.LengthSquared() - MathF.Pow(_radius, 2);
+        var c = ray.Start.LengthSquared() - 1; // Unit sphere radius is 1
 
         var discriminant = MathF.Pow(b, 2) - 4 * a * c;
         if (discriminant < 0.0f) return null;

@@ -1,18 +1,17 @@
 using System.Numerics;
+using RayTracingEngine.Math;
 using RayTracingEngine.Rendering;
 
 namespace RayTracingEngine.Primitives;
 
 public class Cube : Object
 {
-    private float _size;
-
-    public Cube(Vector3 position, float size) : base(position)
+    public Cube(Vector3 position, Vector3 rotation, Vector3 scale) : base(position, rotation, scale)
     {
-        _size = size;
+        BuildTransformMatrix(position, rotation, scale);
     }
     
-    public override HitInfo? HitLocal(Ray ray)
+    public override HitInfo? HitLocal(Ray ray, bool transformBack = true)
     {
         int inSurface = 0, outSurface = 0;
         float tIn = float.MinValue, tOut = float.MaxValue, numenator = 0, denominator = 0;
@@ -71,13 +70,14 @@ public class Cube : Object
 
         if (tIn >= tOut || tIn == float.MinValue || tOut == float.MaxValue) return null;
         var hits = new List<HitPoint>();
+        var transformedMatrix = transformBack ? Matrix4x4.Transpose(TransformMatrix) : Matrix4x4.Identity;
         
         if (tIn > 0.00001)
         {
             hits.Add(new HitPoint
             {
                 HitTime = tIn,
-                Point = ray.GetPoint(tIn),
+                Point = transformBack ? Vector3.Transform(ray.GetPoint(tIn), transformedMatrix) : ray.GetPoint(tIn),
                 Normal = GetUnitNormal(inSurface),
                 IsEntering = true
             });
@@ -88,7 +88,7 @@ public class Cube : Object
             hits.Add(new HitPoint
             {
                 HitTime = tOut,
-                Point = ray.GetPoint(tOut),
+                Point = transformBack ? Vector3.Transform(ray.GetPoint(tOut), transformedMatrix) : ray.GetPoint(tOut),
                 SurfaceIndex = outSurface,
                 Normal = GetUnitNormal(outSurface),
                 IsEntering = false

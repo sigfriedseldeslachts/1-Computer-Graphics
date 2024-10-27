@@ -6,8 +6,9 @@ public interface IRayTraceable
     /// Check if the ray intersects with the object in local space. Meaning the object is at the origin and is not rotated.
     /// </summary>
     /// <param name="ray"></param>
+    /// <param name="transformBack">Set to true if the hit point should be transformed back to world space</param>
     /// <returns></returns>
-    HitInfo? HitLocal(Ray ray);
+    HitInfo? HitLocal(Ray ray, bool transformBack = true);
     
     /// <summary>
     /// Check if the ray intersects with the object. The ray is in world space.

@@ -53,6 +53,16 @@ public class MatrixTransformation
     }
     
     /// <summary>
+    /// Creates a scale matrix from a Vector3
+    /// </summary>
+    /// <param name="scale"></param>
+    /// <returns></returns>
+    public static Matrix4x4 CreateScale(Vector3 scale)
+    {
+        return CreateScale(scale.X, scale.Y, scale.Z);
+    }
+    
+    /// <summary>
     /// For a rotation around the Z axis
     /// </summary>
     /// <param name="angle">Angle in Radians</param>
@@ -123,5 +133,15 @@ public class MatrixTransformation
     public static Matrix4x4 CreateRotation(float x, float y, float z)
     {
         return CreateRotationX(x) * CreateRotationY(y) * CreateRotationZ(z);
+    }
+    
+    /// <summary>
+    /// Creates a rotation matrix from a Vector3
+    /// </summary>
+    /// <param name="rotation"></param>
+    /// <returns></returns>
+    public static Matrix4x4 CreateRotation(Vector3 rotation)
+    {
+        return CreateRotation(rotation.X, rotation.Y, rotation.Z);
     }
 }
