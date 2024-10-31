@@ -11,30 +11,15 @@ public class Program
         int width = 1280, height = 720;
         
         // Create a sphere at the center of the screen
-        var sphere = new Sphere(new Vector3(10, 20, 5),  Vector3.Zero, new Vector3(1, 4, 4));
+        var sphere = new Sphere(new Vector3(5, 0, 0),  new Vector3(0, 0, float.DegreesToRadians(45)), new Vector3(1, 4, 4));
+        var cube = new Cube(Vector3.Zero, Vector3.Zero, Vector3.One);
         
-        var camera = new Camera(new Vector3(0, 0, 10), width, height);
+        var camera = new Camera(new Vector3(0, 0, 100), width, height);
         camera.AddObject(sphere);
-        //camera.Render();
-
-        var start = new Vector3(10, 20, 5);
-        var direction = new Vector3(-8, -12, 4);
-        var ray = new Ray(start, direction);
-        var hit = sphere.Hit(ray);
-        if (hit != null)
-        {
-            foreach (var hitInfo in hit.Hits)
-            {
-                Console.WriteLine(hitInfo.Point);
-            }
-        }
-        else
-        {
-            Console.WriteLine("No hit");
-        }
+        camera.AddObject(cube);
 
         // Create the window object
-        //var window = new ViewWindow(width, height, camera);
-        //window.Run();
+        var window = new ViewWindow(width, height, camera);
+        window.Run();
     }
 }

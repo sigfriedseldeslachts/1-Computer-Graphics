@@ -1,4 +1,5 @@
 using System.Numerics;
+using RayTracingEngine.Material;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -15,6 +16,10 @@ public class Camera(Vector3 position, int width, int height)
     
     public readonly List<IRayTraceable> Objects = new List<IRayTraceable>();
     public readonly List<HitInfo> Hits = new List<HitInfo>();
+    
+    public readonly AMaterial Material = new();
+    
+    public readonly Vector3 LightDirection = new(20, 20, 20);
 
     public void Render()
     {
@@ -50,14 +55,14 @@ public class Camera(Vector3 position, int width, int height)
                 });
 
                 // Draw the pixel
-                DrawPixel(colPos, rowPos, Hits);
+                DrawPixel(colPos, rowPos, Hits, ray.Direction);
             }
         }
         
         Console.WriteLine("Frame rendered");
     }
 
-    public void DrawPixel(int x, int y, List<HitInfo> hits)
+    public void DrawPixel(int x, int y, List<HitInfo> hits, Vector3 viewDirection)
     {
         if (hits.Count == 0)
         {
@@ -65,7 +70,13 @@ public class Camera(Vector3 position, int width, int height)
             return;
         }
         
-        Image[x, y] = Rgba32.ParseHex("#FF0000");
+        // Go over each hitInfo and their hits and get the smallest hit time
+        var hit = hits.SelectMany(h => h.Hits).OrderBy(h => h.HitTime).First();
+        
+        // Get the half way vector
+        var halfway = Vector3.Normalize(LightDirection + viewDirection);
+        
+        Image[x, y] = Material.Shade(hit, LightDirection, viewDirection, halfway);
     }
     
     public void AddObject(IRayTraceable obj)

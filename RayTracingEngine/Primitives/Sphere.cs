@@ -3,8 +3,10 @@ using RayTracingEngine.Rendering;
 
 namespace RayTracingEngine.Primitives;
 
-public class Sphere : Object
+public class Sphere : AObject
 {
+    private List<HitPoint> _hits = [];
+    
     public Sphere(Vector3 position, Vector3 rotation, Vector3 scale) : base(position, rotation, scale)
     {
         BuildTransformMatrix(position, rotation, scale);
@@ -32,16 +34,16 @@ public class Sphere : Object
         var t0 = (-b - sqrtDiscriminant) / (2 * a);
         var t1 = (-b + sqrtDiscriminant) / (2 * a);
         
-        var hits = new List<HitPoint>();
+        _hits.Clear();
         
         if (t0 > 0.00001 || t0 == 0)
         {
             var hit = ray.GetPoint(t0);
-            hits.Add(new HitPoint
+            _hits.Add(new HitPoint
             {
                 HitTime = t0,
                 Point = hit,
-                Normal = GetNormal(hit),
+                Normal = Vector3.Normalize(hit - GlobalPosition),
                 IsEntering = true
             });
         }
@@ -49,25 +51,25 @@ public class Sphere : Object
         if (t1 > 0.00001)
         {
             var hit = ray.GetPoint(t1);
-            hits.Add(new HitPoint
+            _hits.Add(new HitPoint
             {
                 HitTime = t1,
-                Point = hit,
-                Normal = GetNormal(hit),
+                Point = GetHitPoint(hit, transformBack),
+                Normal = Vector3.Normalize(hit - GlobalPosition),
                 IsEntering = false
             });
         }
         
-        if (hits.Count == 0) return null;
+        if (_hits.Count == 0) return null;
         return new HitInfo
         {
-            Object = this,
-            Hits = hits.ToArray()
+            AObject = this,
+            Hits = _hits.ToArray()
         };
     }
     
-    public Vector3 GetNormal(Vector3 point)
+    public override Vector3 GetHitPoint(Vector3 point, bool transformBack)
     {
-        return Vector3.Normalize(point - GlobalPosition);
+        return transformBack ? Vector3.Transform(point, TransposedInverseTransformMatrix) : point;
     }
 }

@@ -1,12 +1,12 @@
 using System.Collections;
 using System.Numerics;
-using Object = RayTracingEngine.Primitives.Object;
+using RayTracingEngine.Primitives;
 
 namespace RayTracingEngine.Rendering;
 
 public class HitInfo
 {
-    public Object Object { get; set; }
+    public AObject AObject { get; set; }
 
     public HitPoint[] Hits { get; set; } = Array.Empty<HitPoint>();
 }

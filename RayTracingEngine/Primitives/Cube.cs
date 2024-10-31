@@ -4,7 +4,7 @@ using RayTracingEngine.Rendering;
 
 namespace RayTracingEngine.Primitives;
 
-public class Cube : Object
+public class Cube : AObject
 {
     public Cube(Vector3 position, Vector3 rotation, Vector3 scale) : base(position, rotation, scale)
     {
@@ -70,14 +70,13 @@ public class Cube : Object
 
         if (tIn >= tOut || tIn == float.MinValue || tOut == float.MaxValue) return null;
         var hits = new List<HitPoint>();
-        var transformedMatrix = transformBack ? Matrix4x4.Transpose(TransformMatrix) : Matrix4x4.Identity;
         
         if (tIn > 0.00001)
         {
             hits.Add(new HitPoint
             {
                 HitTime = tIn,
-                Point = transformBack ? Vector3.Transform(ray.GetPoint(tIn), transformedMatrix) : ray.GetPoint(tIn),
+                Point = GetHitPoint(ray.GetPoint(tIn), transformBack),
                 Normal = GetUnitNormal(inSurface),
                 IsEntering = true
             });
@@ -88,7 +87,7 @@ public class Cube : Object
             hits.Add(new HitPoint
             {
                 HitTime = tOut,
-                Point = transformBack ? Vector3.Transform(ray.GetPoint(tOut), transformedMatrix) : ray.GetPoint(tOut),
+                Point = GetHitPoint(ray.GetPoint(tOut), transformBack),
                 SurfaceIndex = outSurface,
                 Normal = GetUnitNormal(outSurface),
                 IsEntering = false
@@ -98,9 +97,14 @@ public class Cube : Object
         if (hits.Count == 0) return null;
         return new HitInfo
         {
-            Object = this,
+            AObject = this,
             Hits = hits.ToArray()
         };
+    }
+
+    public override Vector3 GetHitPoint(Vector3 point, bool transformBack)
+    {
+        return transformBack ? Vector3.Transform(point, TransposedInverseTransformMatrix) : point;
     }
 
     public static Vector3 GetUnitNormal(int surfaceIndex)
