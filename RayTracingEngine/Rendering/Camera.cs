@@ -19,7 +19,7 @@ public class Camera(Vector3 position, int width, int height)
     
     public readonly AMaterial Material = new();
     
-    public readonly Vector3 LightDirection = new(20, 20, 20);
+    public readonly Vector3 LightDirection = new(-5, 5, -5);
 
     public void Render()
     {
@@ -62,7 +62,14 @@ public class Camera(Vector3 position, int width, int height)
         Console.WriteLine("Frame rendered");
     }
 
-    public void DrawPixel(int x, int y, List<HitInfo> hits, Vector3 viewDirection)
+    /// <summary>
+    /// Draws a pixel at coordinates x, y with the given hits
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="hits"></param>
+    /// <param name="rayDirection"></param>
+    public void DrawPixel(int x, int y, List<HitInfo> hits, Vector3 rayDirection)
     {
         if (hits.Count == 0)
         {
@@ -73,10 +80,7 @@ public class Camera(Vector3 position, int width, int height)
         // Go over each hitInfo and their hits and get the smallest hit time
         var hit = hits.SelectMany(h => h.Hits).OrderBy(h => h.HitTime).First();
         
-        // Get the half way vector
-        var halfway = Vector3.Normalize(LightDirection + viewDirection);
-        
-        Image[x, y] = Material.Shade(hit, LightDirection, viewDirection, halfway);
+        Image[x, y] = Material.Shade(hit, LightDirection, rayDirection);
     }
     
     public void AddObject(IRayTraceable obj)
