@@ -1,5 +1,6 @@
 using System.Numerics;
 using RayTracingEngine.Material;
+using RayTracingEngine.Primitives;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -14,19 +15,17 @@ public class Camera(Vector3 position, int width, int height)
     
     public Image<Rgba32> Image { get; set; } = new(width, height);
     
-    public readonly List<IRayTraceable> Objects = new List<IRayTraceable>();
-    public readonly List<HitInfo> Hits = new List<HitInfo>();
+    public readonly List<IRayTraceable> Objects = [];
+    public readonly List<Light> Lights = [];
+    public readonly List<HitPoint> Hits = [];
     
     public readonly AMaterial Material = new();
-    
-    public readonly Vector3 LightDirection = new(-5, 5, -5);
 
     public void Render()
     {
         Image = new Image<Rgba32>(Width, Height);
 
         int rowPos, colPos;
-        HitInfo? hitInfo;
         var ray = new Ray(Position, Vector3.Zero);
         
         var H = NearPlaneDistance * MathF.Tan(MathF.PI / 4);
@@ -46,13 +45,8 @@ public class Camera(Vector3 position, int width, int height)
                 // Now we need to create a ray direction
                 ray.Direction = Vector3.Normalize(new Vector3(x, y, -position.Z));
                 
-                // Get the hits
-                Objects.ForEach((obj) =>
-                {
-                    hitInfo = obj.Hit(ray);
-                    if (hitInfo == null) return;
-                    Hits.Add(hitInfo);
-                });
+                // Hit each object and add the hits to the list
+                Objects.ForEach(obj => Hits.AddRange(obj.Hit(ray)) );
 
                 // Draw the pixel
                 DrawPixel(colPos, rowPos, Hits, ray.Direction);
@@ -69,7 +63,7 @@ public class Camera(Vector3 position, int width, int height)
     /// <param name="y"></param>
     /// <param name="hits"></param>
     /// <param name="rayDirection"></param>
-    public void DrawPixel(int x, int y, List<HitInfo> hits, Vector3 rayDirection)
+    public void DrawPixel(int x, int y, List<HitPoint> hits, Vector3 rayDirection)
     {
         if (hits.Count == 0)
         {
@@ -78,9 +72,9 @@ public class Camera(Vector3 position, int width, int height)
         }
         
         // Go over each hitInfo and their hits and get the smallest hit time
-        var hit = hits.SelectMany(h => h.Hits).OrderBy(h => h.HitTime).First();
+        var hit = hits.OrderBy(h => h.HitTime).First();
         
-        Image[x, y] = Material.Shade(hit, LightDirection, rayDirection);
+        Image[x, y] = Material.Shade(hit, Lights, rayDirection);
     }
     
     public void AddObject(IRayTraceable obj)

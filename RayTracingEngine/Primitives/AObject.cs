@@ -14,7 +14,7 @@ public abstract class AObject : IRayTraceable
     public Matrix4x4 InverseTransformMatrix { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 TransposedInverseTransformMatrix { get; set; } = Matrix4x4.Identity;
     
-    public abstract HitInfo? HitLocal(Ray ray, bool transformBack = true);
+    public abstract HitPoint[] HitLocal(Ray ray, bool transformBack = true);
 
     public abstract Vector3 GetHitPoint(Vector3 point, bool transformBack);
 
@@ -30,16 +30,28 @@ public abstract class AObject : IRayTraceable
         TransformMatrix = MatrixTransformation.CreateTranslation(position)
             * MatrixTransformation.CreateRotation(rotation)
             * MatrixTransformation.CreateScale(scale);
+
+        if (!Matrix4x4.Invert(TransformMatrix, out var inverseMatrix)) return;
         
-        if (Matrix4x4.Invert(TransformMatrix, out var inverseMatrix))
-        {
-            InverseTransformMatrix = inverseMatrix;
-            TransposedInverseTransformMatrix = Matrix4x4.Transpose(inverseMatrix);
-        }
+        InverseTransformMatrix = inverseMatrix;
+        TransposedInverseTransformMatrix = Matrix4x4.Transpose(inverseMatrix);
     }
     
-    public HitInfo? Hit(Ray ray)
+    public HitPoint[] Hit(Ray ray)
     {
         return HitLocal(ray.Transform(InverseTransformMatrix));
+    }
+    
+    /// <summary>
+    /// Inverses the normal if we are hitting the object from the inside
+    /// A simple dot product is used to determine this. The normal MUST be in the opposite direction of the ray, if
+    /// it is not then we are hitting the object from the inside
+    /// </summary>
+    /// <param name="normal"></param>
+    /// <param name="direction"></param>
+    /// <returns></returns>
+    public static Vector3 GetCorrectedNormal(Vector3 normal, Vector3 direction)
+    {
+        return Vector3.Dot(normal, direction) < 0 ? normal : -normal;
     }
 }

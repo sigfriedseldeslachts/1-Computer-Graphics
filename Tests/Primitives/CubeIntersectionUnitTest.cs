@@ -14,7 +14,7 @@ public class CubeIntersectionUnitTest
         
         Assert.That(
             cube.HitLocal(ray, false),
-            Is.Null
+            Is.Empty
         );
     }
 
@@ -22,11 +22,11 @@ public class CubeIntersectionUnitTest
     public void TestIntersectionTwoPointsInLocalSpace()
     {
         var cube = new Cube(Vector3.Zero, Vector3.Zero, Vector3.One);
-        var ray = new Ray(Vector3.One, -1 * Vector3.One);
+        var ray = new Ray(Vector3.One, -Vector3.One);
 
         var hit = cube.HitLocal(ray ,false);
         Assert.That(hit, Is.Not.Null);
-        Assert.That(hit!.Hits.Count, Is.EqualTo(2));
+        Assert.That(hit, Has.Length.EqualTo(2));
     }
 
     [Test]
@@ -37,6 +37,17 @@ public class CubeIntersectionUnitTest
         
         var hit = cube.HitLocal(ray, false);
         Assert.That(hit, Is.Not.Null);
-        Assert.That(hit!.Hits.Count, Is.EqualTo(1));
+        Assert.That(hit, Has.Length.EqualTo(1));
+    }
+    
+    [Test]
+    public void TestRayStartingFromInsideCube()
+    {
+        var sphere = new Cube(Vector3.Zero, Vector3.Zero, new Vector3(5, 5, 5));
+        var ray = new Ray(Vector3.Zero, Vector3.UnitX);
+        
+        var hit = sphere.HitLocal(ray, false);
+        Assert.That(hit, Is.Not.Null);
+        Assert.That(hit, Has.Length.EqualTo(1));
     }
 }

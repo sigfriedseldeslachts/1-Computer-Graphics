@@ -8,7 +8,7 @@ public interface IRayTraceable
     /// <param name="ray"></param>
     /// <param name="transformBack">Set to true if the hit point should be transformed back to world space</param>
     /// <returns></returns>
-    HitInfo? HitLocal(Ray ray, bool transformBack = true);
+    HitPoint[] HitLocal(Ray ray, bool transformBack = true);
     
     /// <summary>
     /// Check if the ray intersects with the object. The ray is in world space.
@@ -16,5 +16,5 @@ public interface IRayTraceable
     /// </summary>
     /// <param name="ray"></param>
     /// <returns></returns>
-    HitInfo? Hit(Ray ray);
+    HitPoint[] Hit(Ray ray);
 }

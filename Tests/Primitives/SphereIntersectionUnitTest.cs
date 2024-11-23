@@ -26,7 +26,7 @@ public class SphereIntersectionUnitTest
 
         var hit = sphere.HitLocal(ray, false);
         Assert.That(hit, Is.Not.Null);
-        Assert.That(hit!.Hits.Count, Is.EqualTo(2));
+        Assert.That(hit.Length, Is.EqualTo(2));
     }
 
     [Test]
@@ -37,6 +37,17 @@ public class SphereIntersectionUnitTest
         
         var hit = sphere.HitLocal(ray, false);
         Assert.That(hit, Is.Not.Null);
-        Assert.That(hit!.Hits.Count, Is.EqualTo(1));
+        Assert.That(hit!.Length, Is.EqualTo(1));
+    }
+    
+    [Test]
+    public void TestRayStartingFromInsideCube()
+    {
+        var sphere = new Sphere(Vector3.Zero, Vector3.Zero, new Vector3(5, 5, 5));
+        var ray = new Ray(Vector3.Zero, Vector3.UnitX);
+        
+        var hit = sphere.HitLocal(ray, false);
+        Assert.That(hit, Is.Not.Null);
+        Assert.That(hit!.Length, Is.EqualTo(1));
     }
 }

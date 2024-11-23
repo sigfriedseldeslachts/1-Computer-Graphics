@@ -1,4 +1,5 @@
 using System.Numerics;
+using RayTracingEngine.Primitives;
 using RayTracingEngine.Rendering;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -16,10 +17,12 @@ public class AMaterial
     // Vector m -> normal to the surface at the hit point
     // Vector h -> Halfway vector between s and v => h = (s + v)
     
-    public Rgba32 Shade(HitPoint hitPoint, Vector3 lightDirection, Vector3 rayDirection)
+    public Rgba32 Shade(HitPoint hitPoint, List<Light> lights, Vector3 rayDirection)
     {
+        var light = lights.First();
+        
         var v = Vector3.Normalize(-rayDirection); // Camera direction
-        var s = Vector3.Normalize(lightDirection - hitPoint.Point); // Light direction
+        var s = Vector3.Normalize(light.Direction - hitPoint.Point); // Light direction
         var h = Vector3.Normalize(v + s); // Halfway vector
         
         var NdotS = Vector3.Dot(hitPoint.Normal, s);
@@ -30,7 +33,7 @@ public class AMaterial
         // Calculate the Fresnel term using Schlick's approximation
         var fresnel = FresnelFunction(VdotH);
 
-        // Calculate the geometry term using the Smith-Schlick-GGX approximation
+        // Calculate the geometry term with Schlick's approximation
         var geometry = GeometrySmith(NdotV, NdotS, SurfaceRoughness());
 
         // Calculate the normal distribution function (NDF) with GGX model
@@ -40,7 +43,7 @@ public class AMaterial
         var specular = (distribution * geometry * fresnel) / (4 * NdotV * NdotS + 1e-5f);
 
         // Scale to RGB output (clamp to ensure values remain in range)
-        var colorValue = 255 * specular * NdotS;
+        var colorValue = 255 * specular * NdotS * light.Intensity;
         colorValue = colorValue switch
         {
             > 255 => 255,
@@ -61,24 +64,24 @@ public class AMaterial
 
     private float NormalDistributionFunction(float NdotH, float roughness)
     {
-        float alpha = roughness * roughness;
-        float alphaSq = alpha * alpha;
-        float NdotHSq = NdotH * NdotH;
+        var alpha = roughness * roughness;
+        var alphaSq = alpha * alpha;
+        var NdotHSq = NdotH * NdotH;
 
-        float denom = (NdotHSq * (alphaSq - 1) + 1);
+        var denom = (NdotHSq * (alphaSq - 1) + 1);
         return alphaSq / (MathF.PI * denom * denom);
     }
 
     private float GeometrySmith(float NdotV, float NdotL, float roughness)
     {
-        float ggxV = GeometrySchlickGGX(NdotV, roughness);
-        float ggxL = GeometrySchlickGGX(NdotL, roughness);
+        var ggxV = GeometrySchlickGGX(NdotV, roughness);
+        var ggxL = GeometrySchlickGGX(NdotL, roughness);
         return ggxV * ggxL;
     }
 
     private float GeometrySchlickGGX(float NdotX, float roughness)
     {
-        float k = (roughness + 1) * (roughness + 1) / 8;
+        var k = (roughness + 1) * (roughness + 1) / 8;
         return NdotX / (NdotX * (1 - k) + k);
     }
 

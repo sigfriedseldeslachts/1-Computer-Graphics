@@ -12,9 +12,9 @@ public class Sphere : AObject
         BuildTransformMatrix(position, rotation, scale);
     }
     
-    public override HitInfo? HitLocal(Ray ray, bool transformBack = true)
+    public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
     {
-        if (ray.Direction == Vector3.Zero) return null;
+        if (ray.Direction == Vector3.Zero) return [];
         
         // Our sphere is x^2 + y^2 + z^2 - r^2 = 0. To check whether a ray intersects with the sphere,
         // we can substitute the ray vector with the x, y, z values and solve the quadratic equation.
@@ -28,7 +28,7 @@ public class Sphere : AObject
         var c = ray.Start.LengthSquared() - 1; // Unit sphere radius is 1
 
         var discriminant = MathF.Pow(b, 2) - 4 * a * c;
-        if (discriminant < 0.0f) return null;
+        if (discriminant < 0.0f) return [];
         
         var sqrtDiscriminant = MathF.Sqrt(discriminant);
         var t0 = (-b - sqrtDiscriminant) / (2 * a);
@@ -41,6 +41,7 @@ public class Sphere : AObject
             var hit = ray.GetPoint(t0);
             _hits.Add(new HitPoint
             {
+                Object = this,
                 HitTime = t0,
                 Point = hit,
                 Normal = Vector3.Normalize(hit - GlobalPosition),
@@ -53,6 +54,7 @@ public class Sphere : AObject
             var hit = ray.GetPoint(t1);
             _hits.Add(new HitPoint
             {
+                Object = this,
                 HitTime = t1,
                 Point = GetHitPoint(hit, transformBack),
                 Normal = Vector3.Normalize(hit - GlobalPosition),
@@ -60,12 +62,7 @@ public class Sphere : AObject
             });
         }
         
-        if (_hits.Count == 0) return null;
-        return new HitInfo
-        {
-            AObject = this,
-            Hits = _hits.ToArray()
-        };
+        return _hits.ToArray();
     }
     
     public override Vector3 GetHitPoint(Vector3 point, bool transformBack)

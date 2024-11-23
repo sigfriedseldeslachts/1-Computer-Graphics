@@ -11,7 +11,7 @@ public class Cube : AObject
         BuildTransformMatrix(position, rotation, scale);
     }
     
-    public override HitInfo? HitLocal(Ray ray, bool transformBack = true)
+    public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
     {
         int inSurface = 0, outSurface = 0;
         float tIn = float.MinValue, tOut = float.MaxValue, numenator = 0, denominator = 0;
@@ -68,16 +68,17 @@ public class Cube : AObject
             }
         }
 
-        if (tIn >= tOut || tIn == float.MinValue || tOut == float.MaxValue) return null;
+        if (tIn >= tOut || tIn == float.MinValue || tOut == float.MaxValue) return [];
         var hits = new List<HitPoint>();
         
         if (tIn > 0.00001)
         {
             hits.Add(new HitPoint
             {
+                Object = this,
                 HitTime = tIn,
                 Point = GetHitPoint(ray.GetPoint(tIn), transformBack),
-                Normal = GetUnitNormal(inSurface),
+                Normal = GetCorrectedNormal(GetUnitNormal(inSurface), ray.Direction),
                 IsEntering = true
             });
         }
@@ -86,20 +87,16 @@ public class Cube : AObject
         {
             hits.Add(new HitPoint
             {
+                Object = this,
                 HitTime = tOut,
                 Point = GetHitPoint(ray.GetPoint(tOut), transformBack),
                 SurfaceIndex = outSurface,
-                Normal = GetUnitNormal(outSurface),
+                Normal = GetCorrectedNormal(GetUnitNormal(outSurface), ray.Direction),
                 IsEntering = false
             });
         }
         
-        if (hits.Count == 0) return null;
-        return new HitInfo
-        {
-            AObject = this,
-            Hits = hits.ToArray()
-        };
+        return hits.ToArray();
     }
 
     public override Vector3 GetHitPoint(Vector3 point, bool transformBack)
