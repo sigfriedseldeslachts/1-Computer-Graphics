@@ -36,7 +36,7 @@ public class AMaterial
         // Calculate the geometry term with Schlick's approximation
         var geometry = GeometrySmith(NdotV, NdotS, SurfaceRoughness());
 
-        // Calculate the normal distribution function (NDF) with GGX model
+        // Calculate the normal distribution function
         var distribution = NormalDistributionFunction(NdotH, SurfaceRoughness());
 
         // Combine terms to get the Cook-Torrance specular component
@@ -62,14 +62,11 @@ public class AMaterial
         return FresnelColor.X + (1 - FresnelColor.X) * MathF.Pow(1 - VdotH, 5);
     }
 
-    private float NormalDistributionFunction(float NdotH, float roughness)
+    private float NormalDistributionFunction(float delta, float roughness)
     {
-        var alpha = roughness * roughness;
-        var alphaSq = alpha * alpha;
-        var NdotHSq = NdotH * NdotH;
-
-        var denom = (NdotHSq * (alphaSq - 1) + 1);
-        return alphaSq / (MathF.PI * denom * denom);
+        // Using Beckmanm63 distribution
+        var a = roughness * roughness;
+        return 1 / (4 * MathF.Pow(roughness, 2) * MathF.Pow(MathF.Cos(delta), 4));
     }
 
     private float GeometrySmith(float NdotV, float NdotL, float roughness)

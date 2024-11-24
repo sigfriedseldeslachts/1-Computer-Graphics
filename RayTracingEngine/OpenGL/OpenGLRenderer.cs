@@ -26,8 +26,8 @@ public class OpenGLRenderer
     {
         _gl = GL.GetApi(window);
         _shader = new OpenGLShader(window,
-            "/home/sigfried/Projects/School/RayTracingEngine/RayTracingEngine/OpenGL/vertex.glsl",
-            "/home/sigfried/Projects/School/RayTracingEngine/RayTracingEngine/OpenGL/fragment.glsl");
+            "/home/sigfried/Documents/School/1-Computer-Graphics/RayTracingEngine/OpenGL/vertex.glsl",
+            "/home/sigfried/Documents/School/1-Computer-Graphics/RayTracingEngine/OpenGL/fragment.glsl");
         
         Create2DPlane();
     }
