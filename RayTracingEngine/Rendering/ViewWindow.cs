@@ -10,7 +10,7 @@ public class ViewWindow
     public int Width { get; }
     public int Height { get; }
     public IWindow Window { get; private set; }
-    public OpenGLRenderer GlRenderer { get; private set; }
+    public OpenGlRenderer GlRenderer { get; private set; }
     public Camera Camera { get; private set; }
     
     public ViewWindow(int width, int height, Camera camera)
@@ -38,7 +38,7 @@ public class ViewWindow
         
         Window.Load += () =>
         {
-            GlRenderer = new OpenGLRenderer(Window);
+            GlRenderer = new OpenGlRenderer(Window);
         };
         Window.Update += (deltaTime) =>
         {

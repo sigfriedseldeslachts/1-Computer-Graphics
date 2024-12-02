@@ -19,7 +19,7 @@ public class Camera(Vector3 position, int width, int height)
     public readonly List<Light> Lights = [];
     public readonly List<HitPoint> Hits = [];
     
-    public readonly AMaterial Material = new();
+    public readonly Shader Material = new();
 
     public void Render()
     {

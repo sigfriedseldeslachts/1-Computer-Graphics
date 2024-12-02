@@ -6,6 +6,7 @@ namespace RayTracingEngine.Primitives;
 public class Light : AObject
 {
     public float Intensity { get; set; }
+    public Vector3 Color { get; set; } = Vector3.One;
     public Vector3 Direction { get; set; }
     
     public Light(float intensity, Vector3 lightDirection, Vector3 position) : base(position, Vector3.Zero, Vector3.Zero)

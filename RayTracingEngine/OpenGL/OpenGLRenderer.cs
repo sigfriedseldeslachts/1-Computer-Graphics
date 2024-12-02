@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace RayTracingEngine.OpenGL;
 
-public class OpenGLRenderer
+public class OpenGlRenderer
 {
     private static float[] vertices = {
         // Positions  // Texture Coords
@@ -20,14 +20,14 @@ public class OpenGLRenderer
     private readonly GL _gl;
     private readonly OpenGLShader _shader;
     private uint _vao, _vbo, _ebo, _texture;
-    private byte[] pixelBuffer = [];
+    private byte[] _pixelBuffer = [];
 
-    public OpenGLRenderer(IWindow window)
+    public OpenGlRenderer(IWindow window)
     {
         _gl = GL.GetApi(window);
         _shader = new OpenGLShader(window,
-            "/home/sigfried/Documents/School/1-Computer-Graphics/RayTracingEngine/OpenGL/vertex.glsl",
-            "/home/sigfried/Documents/School/1-Computer-Graphics/RayTracingEngine/OpenGL/fragment.glsl");
+            "/home/sigfried/Projects/School/RayTracingEngine/RayTracingEngine/OpenGL/vertex.glsl",
+            "/home/sigfried/Projects/School/RayTracingEngine/RayTracingEngine/OpenGL/fragment.glsl");
         
         Create2DPlane();
     }
@@ -78,18 +78,18 @@ public class OpenGLRenderer
     public unsafe void SetTextureFromBitmap(Image<Rgba32> image)
     {
         // Get the pixel buffer
-        pixelBuffer = new byte[image.Width * image.Height * Unsafe.SizeOf<Rgba32>()];
-        image.CopyPixelDataTo(pixelBuffer);
+        _pixelBuffer = new byte[image.Width * image.Height * Unsafe.SizeOf<Rgba32>()];
+        image.CopyPixelDataTo(_pixelBuffer);
         
         _gl.BindTexture(TextureTarget.Texture2D, _texture);
-        fixed (byte* ptr = pixelBuffer)
+        fixed (byte* ptr = _pixelBuffer)
         {
             _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba32f, (uint) image.Width, (uint) image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, ptr);
         }
         _gl.GenerateMipmap(TextureTarget.Texture2D);
         
         // Clear the pixel buffer
-        pixelBuffer = [];
+        _pixelBuffer = [];
     }
     
     public unsafe void Draw()
