@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace RayTracingEngine.Material;
 
-public class GoldMaterial : AMaterial
+public class GoldMaterial : StandardMaterial
 {
     // From: learnwebgl.brown37.net/10_surface_properties/surface_properties_color.html
     public GoldMaterial()

@@ -12,12 +12,14 @@ public class Program
   
         var encompassingCube = new Cube(Vector3.Zero, Vector3.Zero, new Vector3(100,100,100));
         var sphere = new Sphere(Vector3.Zero,  Vector3.Zero, Vector3.One);
-        var light = new Light(1.0f, new Vector3(10, 5, 10), new Vector3(0, 0, 0));
+        
+        var light = new Light(1.0f, new Vector3(-10, 5, 10), new Vector3(0, 0, 0));
+        var light2 = new Light(1.0f, new Vector3(10, 5, 10), new Vector3(0, 0, 0));
         
         var camera = new Camera(new Vector3(-5, 0, 50), width, height);
         camera.AddObject(sphere);
         camera.AddObject(encompassingCube);
-        camera.Lights.Add(light);
+        camera.Lights.Add(light2);
 
         // Create the window object
         var window = new ViewWindow(width, height, camera);

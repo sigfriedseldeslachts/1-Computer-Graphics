@@ -10,6 +10,8 @@ namespace RayTracingEngine.Material;
 /// </summary>
 public class Shader
 {
+    private const UInt16 MaxDepth = 5;
+    private readonly float[] _colorValues = new float[3];
     public Vector3 AmbientColor = new(0.1f, 0.1f, 0.1f);
     
     // Vector s -> From the light source to the hit point => s = lightDirection - hitPoint.Position
@@ -17,58 +19,70 @@ public class Shader
     // Vector m -> normal to the surface at the hit point
     // Vector h -> Halfway vector between s and v => h = (s + v)
     
-    public Rgba32 Shade(HitPoint hitPoint, List<Light> lights, Vector3 rayDirection)
+    public Rgba32 Shade(HitPoint hitPoint, List<Light> lights, Vector3 rayDirection, UInt16 depth = 0)
     {
-        var light = lights.First();
-
-        var material = new GoldMaterial();
-        
-        var v = Vector3.Normalize(-rayDirection); // Camera direction
-        var s = Vector3.Normalize(light.Direction - hitPoint.Point); // Light direction
-        var h = Vector3.Normalize(v + s); // Halfway vector
-        
-        var NdotS = Vector3.Dot(hitPoint.Normal, s);
-        var NdotV = Vector3.Dot(hitPoint.Normal, v);
-        var NdotH = Vector3.Dot(hitPoint.Normal, h);
-        var VdotH = Vector3.Dot(v, h);
-        var HdotS = Vector3.Dot(h, s);
-
-        // Calculate the Fresnel term using Schlick's approximation
-        var fresnel = FresnelFunction(NdotS);
-
-        // Calculate the geometry term with Cook-Toorance model
-        var geometry = Geometry(NdotH, NdotS, NdotV, HdotS);
-
-        // Calculate the normal distribution function
-        var distribution = NormalDistributionFunction(NdotH, SurfaceRoughness());
-
-        // Combine terms to get the Cook-Torrance specular component
-        var specular = fresnel * distribution * geometry / NdotV;
-
-        // Scale to RGB output (clamp to ensure values remain in range)
-        var colorValue = 255 * specular * NdotS * light.Intensity;
-        colorValue = colorValue switch
+        if (depth > MaxDepth)
         {
-            > 255 => 255,
-            < 0 => 0,
-            _ => colorValue
-        };
+            return new Rgba32(0, 0, 0);
+        }
+        
+        // Calculate some vectors which are not dependant on the light
+        var v = Vector3.Normalize(-rayDirection); // Camera direction
+        var NdotV = Vector3.Dot(hitPoint.Normal, v);
+        
+        // Reset color values to ambient color
+        _colorValues[0] = AmbientColor.X;
+        _colorValues[1] = AmbientColor.Y;
+        _colorValues[2] = AmbientColor.Z;
+        
+        var material = new StandardMaterial();
 
-        // Map the value from 0-255 to a 0-1 range
-        colorValue /= 255;
+        foreach (var light in lights)
+        {
+        
+            var s = Vector3.Normalize(light.Direction - hitPoint.Point); // Light direction
+            var h = Vector3.Normalize(v + s); // Halfway vector
+        
+            var NdotS = Vector3.Dot(hitPoint.Normal, s);
+            var NdotH = Vector3.Dot(hitPoint.Normal, h);
+            //var VdotH = Vector3.Dot(v, h);
+            var HdotS = Vector3.Dot(h, s);
 
-        return new Rgba32(colorValue, colorValue, colorValue);
+            // Combine some terms to speed up calculations
+            var DtimesG = NormalDistributionFunction(NdotH, material.SurfaceRoughness)
+                          * Geometry(NdotH, NdotS, NdotV, HdotS);
+
+            // For each RGB-channel, calculate the color value
+            for (var i = 0; i < 3; i++)
+            {
+                // kD is dependant on our surface roughness
+                var kD = material.SurfaceRoughness;
+                var kS = 1 - kD;
+            
+                var specular = light.Color[i] * kS * FresnelFunction(NdotS, material.EtaFresnel[i]) * DtimesG / NdotV;
+                var diffuse = light.Color[i] * kD * material.DiffuseColor[i];
+
+                _colorValues[i] += specular + diffuse;
+            }
+        }
+        
+        // Clamp RGB values between 0-1
+        System.Math.Clamp(_colorValues[0], 0.0f, 1.0f);
+        System.Math.Clamp(_colorValues[1], 0.0f, 1.0f);
+        System.Math.Clamp(_colorValues[2], 0.0f, 1.0f);
+
+        return new Rgba32(_colorValues[0], _colorValues[1], _colorValues[2]);
     }
 
     /// <summary>
     /// Fresnel function which models the reflectance of the surface.
     /// </summary>
     /// <param name="c">Dot product of surface normal and s</param>
+    /// <param name="eta">Index of refraction</param>
     /// <returns></returns>
-    private float FresnelFunction(float c)
+    private float FresnelFunction(float c, float eta)
     {
-        var refractionIndex = 20.0f;
-        var g = MathF.Sqrt(MathF.Pow(refractionIndex, 2) + MathF.Pow(c, 2) - 1);
+        var g = MathF.Sqrt(MathF.Pow(eta, 2) + MathF.Pow(c, 2) - 1);
 
         var gPc = g + c;
         var gMc = g - c;
