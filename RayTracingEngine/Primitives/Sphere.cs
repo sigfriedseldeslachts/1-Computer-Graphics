@@ -5,14 +5,13 @@ namespace RayTracingEngine.Primitives;
 
 public class Sphere : AObject
 {
-    private List<HitPoint> _hits = [];
-    
     public Sphere(Vector3 position, Vector3 rotation, Vector3 scale) : base(position, rotation, scale)
     {
         BuildTransformMatrix(position, rotation, scale);
     }
-    
-    public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
+
+
+    public override float[] SimpleHitLocal(Ray ray)
     {
         if (ray.Direction == Vector3.Zero) return [];
         
@@ -34,37 +33,50 @@ public class Sphere : AObject
         var t0 = (-b - sqrtDiscriminant) / (2 * a);
         var t1 = (-b + sqrtDiscriminant) / (2 * a);
         
-        _hits.Clear();
+        return [t0, t1];
+    }
+
+    public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
+    {
+        var values = SimpleHitLocal(ray);
+        if (values.Length == 0) return [];
+        Hits.Clear();
         
-        if (t0 > 0.00001 || t0 == 0)
+        if (values[0] > 0.00001 || values[0] == 0)
         {
-            var hit = ray.GetPoint(t0);
-            _hits.Add(new HitPoint
+            var hit = ray.GetPoint(values[0]);
+            Hits.Add(new HitPoint
             {
                 Object = this,
-                HitTime = t0,
-                Point = hit,
+                HitTime = values[0],
+                Point = GetHitPoint(hit, transformBack),
                 Normal = Vector3.Normalize(hit - GlobalPosition),
                 IsEntering = true
             });
         }
 
-        if (t1 > 0.00001)
+        if (values[1] > 0.00001)
         {
-            var hit = ray.GetPoint(t1);
-            _hits.Add(new HitPoint
+            var hit = ray.GetPoint(values[1]);
+            Hits.Add(new HitPoint
             {
                 Object = this,
-                HitTime = t1,
+                HitTime = values[1],
                 Point = GetHitPoint(hit, transformBack),
                 Normal = Vector3.Normalize(hit - GlobalPosition),
                 IsEntering = false
             });
         }
         
-        return _hits.ToArray();
+        return Hits.ToArray();
     }
-    
+
+    public override bool HasHit(Ray ray)
+    {
+        var values = SimpleHit(ray);
+        return values.Length != 0 && (values[0] > 0.00001 || values[1] > 0.00001);
+    }
+
     public override Vector3 GetHitPoint(Vector3 point, bool transformBack)
     {
         return transformBack ? Vector3.Transform(point, TransposedInverseTransformMatrix) : point;

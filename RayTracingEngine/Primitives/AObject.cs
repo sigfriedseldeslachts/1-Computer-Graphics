@@ -10,9 +10,13 @@ public abstract class AObject : IRayTraceable
     public Vector3 Rotation { get; set; }
     public Vector3 Scale { get; set; }
     
+    public readonly List<HitPoint> Hits = new();
+    
     public Matrix4x4 TransformMatrix { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 InverseTransformMatrix { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 TransposedInverseTransformMatrix { get; set; } = Matrix4x4.Identity;
+    
+    public abstract float[] SimpleHitLocal(Ray ray);
     
     public abstract HitPoint[] HitLocal(Ray ray, bool transformBack = true);
 
@@ -36,6 +40,13 @@ public abstract class AObject : IRayTraceable
         InverseTransformMatrix = inverseMatrix;
         TransposedInverseTransformMatrix = Matrix4x4.Transpose(inverseMatrix);
     }
+
+    public abstract bool HasHit(Ray ray);
+    
+    public float[] SimpleHit(Ray ray)
+    {
+        return SimpleHitLocal(ray.Transform(InverseTransformMatrix));
+    }
     
     public HitPoint[] Hit(Ray ray)
     {
@@ -50,7 +61,7 @@ public abstract class AObject : IRayTraceable
     /// <param name="normal"></param>
     /// <param name="direction"></param>
     /// <returns></returns>
-    public static Vector3 GetCorrectedNormal(Vector3 normal, Vector3 direction)
+    protected static Vector3 GetCorrectedNormal(Vector3 normal, Vector3 direction)
     {
         return Vector3.Dot(normal, direction) < 0 ? normal : -normal;
     }

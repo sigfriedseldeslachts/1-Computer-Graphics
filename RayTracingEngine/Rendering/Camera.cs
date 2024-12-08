@@ -6,17 +6,15 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace RayTracingEngine.Rendering;
 
-public class Camera(Vector3 position, int width, int height)
+public class Camera(Scene scene, Vector3 position, int width, int height)
 {
     public Vector3 Position { get; set; } = position;
     public float NearPlaneDistance { get; set; } = 5;
     public int Width { get; set; } = width;
     public int Height { get; set; } = height;
-    
+
     public Image<Rgba32> Image { get; set; } = new(width, height);
     
-    public readonly List<IRayTraceable> Objects = [];
-    public readonly List<Light> Lights = [];
     public readonly List<HitPoint> Hits = [];
     
     public readonly Shader Material = new();
@@ -46,7 +44,7 @@ public class Camera(Vector3 position, int width, int height)
                 ray.Direction = Vector3.Normalize(new Vector3(x, y, -position.Z));
                 
                 // Hit each object and add the hits to the list
-                Objects.ForEach(obj => Hits.AddRange(obj.Hit(ray)) );
+                scene.Objects.ForEach(obj => Hits.AddRange(obj.Hit(ray)) );
 
                 // Draw the pixel
                 DrawPixel(colPos, rowPos, Hits, ray.Direction);
@@ -74,16 +72,6 @@ public class Camera(Vector3 position, int width, int height)
         // Go over each hitInfo and their hits and get the smallest hit time
         var hit = hits.OrderBy(h => h.HitTime).First();
         
-        Image[x, y] = Material.Shade(hit, Lights, rayDirection);
-    }
-    
-    public void AddObject(IRayTraceable obj)
-    {
-        Objects.Add(obj);
-    }
-    
-    public void RemoveObject(IRayTraceable obj)
-    {
-        Objects.Remove(obj);
+        Image[x, y] = Material.Shade(scene, hit, rayDirection);
     }
 }

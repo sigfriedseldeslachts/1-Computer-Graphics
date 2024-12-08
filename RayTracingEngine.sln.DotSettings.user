@@ -1,6 +1,25 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AAssert_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003F_002Econfig_003FJetBrains_003FRider2024_002E2_003Fresharper_002Dhost_003FSourcesCache_003F46a322d26154b982566e1817203e5452c91223f93b0e392d9c5b4806696fdc1_003FAssert_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=7020124F_002D9FFC_002D4AC3_002D8F3D_002DAAB8E0240759_002Ff_003AMatrix4x4_002Ecs_002Fl_003A_002E_002E_003F_002E_002E_003F_002E_002E_003F_002Econfig_003FJetBrains_003FRider2024_002E2_003Fresharper_002Dhost_003FDecompilerCache_003Fdecompiler_003F1bb9f0aa822e4dbab039128d2fa9a444b2d200_003Ff4_003Fb9f2c935_003FMatrix4x4_002Ecs/@EntryIndexedValue">ForceIncluded</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=0a7bdea5_002D2298_002D48cf_002D9805_002D76304917d754/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="SphereIntersectionUnitTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=0a7bdea5_002D2298_002D48cf_002D9805_002D76304917d754/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="SphereIntersectionUnitTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Primitives.SphereIntersectionUnitTest&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Primitives.CubeIntersectionUnitTest&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1cec1d18_002D9685_002D49b4_002D9bc1_002Df69718af3217/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="SphereIntersectionUnitTest #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Primitives.SphereIntersectionUnitTest&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Primitives.CubeIntersectionUnitTest&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3390012d_002Dc511_002D4388_002Db8a2_002De6e6b2c467bd/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="SphereIntersectionUnitTest #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Primitives.SphereIntersectionUnitTest&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Primitives.CubeIntersectionUnitTest&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3dab1325_002Dc6c1_002D407b_002D9608_002D733be82dd0c5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="SphereIntersectionUnitTest #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
     &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Primitives.SphereIntersectionUnitTest&lt;/TestId&gt;
     &lt;TestId&gt;NUnit3x::7B1C2A0E-D0B8-4EE2-9C0A-B0B91C8D515D::net8.0::Tests.Primitives.CubeIntersectionUnitTest&lt;/TestId&gt;

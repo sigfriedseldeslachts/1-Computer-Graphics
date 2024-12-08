@@ -15,8 +15,18 @@ public class Light : AObject
         Direction = lightDirection;
         BuildTransformMatrix(position, Vector3.Zero, Vector3.Zero);
     }
+    
+    public override float[] SimpleHitLocal(Ray ray)
+    {
+        throw new NotImplementedException();
+    }
 
     public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override bool HasHit(Ray ray)
     {
         throw new NotImplementedException();
     }

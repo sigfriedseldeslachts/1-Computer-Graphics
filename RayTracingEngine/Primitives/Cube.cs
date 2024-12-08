@@ -11,7 +11,7 @@ public class Cube : AObject
         BuildTransformMatrix(position, rotation, scale);
     }
     
-    public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
+    public override float[] SimpleHitLocal(Ray ray)
     {
         int inSurface = 0, outSurface = 0;
         float tIn = float.MinValue, tOut = float.MaxValue, numenator = 0, denominator = 0;
@@ -49,8 +49,7 @@ public class Cube : AObject
             
             if (MathF.Abs(denominator) < 0.00001)
             {
-                // Ray is parallel to the face
-                continue;
+                if (numenator < 0) continue; // Ray is parallel to the face and outside the cube
             }
             
             var t = numenator / denominator;
@@ -68,35 +67,49 @@ public class Cube : AObject
             }
         }
 
-        if (tIn >= tOut || tIn == float.MinValue || tOut == float.MaxValue) return [];
-        var hits = new List<HitPoint>();
+        //if (tIn >= tOut) return []; // This breaks it for some reason?
+        //if (tIn == float.MinValue && tOut == float.MaxValue) return [];
+        return [tIn, inSurface, tOut, outSurface];
+    }
+    
+    public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
+    {
+        var values = SimpleHitLocal(ray);
+        if (values.Length == 0) return [];
+        Hits.Clear();
         
-        if (tIn > 0.00001)
+        if (values[0] > 0.00001)
         {
-            hits.Add(new HitPoint
+            Hits.Add(new HitPoint
             {
                 Object = this,
-                HitTime = tIn,
-                Point = GetHitPoint(ray.GetPoint(tIn), transformBack),
-                Normal = GetCorrectedNormal(GetUnitNormal(inSurface), ray.Direction),
+                HitTime = values[0],
+                Point = GetHitPoint(ray.GetPoint(values[0]), transformBack),
+                Normal = GetCorrectedNormal(GetUnitNormal((int) values[1]), ray.Direction),
                 IsEntering = true
             });
         }
         
-        if (tOut > 0.00001)
+        if (values[2] > 0.00001 && values[2] < 100000.0f)
         {
-            hits.Add(new HitPoint
+            Hits.Add(new HitPoint
             {
                 Object = this,
-                HitTime = tOut,
-                Point = GetHitPoint(ray.GetPoint(tOut), transformBack),
-                SurfaceIndex = outSurface,
-                Normal = GetCorrectedNormal(GetUnitNormal(outSurface), ray.Direction),
+                HitTime = values[2],
+                Point = GetHitPoint(ray.GetPoint(values[2]), transformBack),
+                SurfaceIndex = (int) values[3],
+                Normal = GetCorrectedNormal(GetUnitNormal((int) values[3]), ray.Direction),
                 IsEntering = false
             });
         }
         
-        return hits.ToArray();
+        return Hits.ToArray();
+    }
+
+    public override bool HasHit(Ray ray)
+    {
+        var values = SimpleHit(ray);
+        return values.Length != 0 && (values[0] > 0.00001 || values[2] > 0.00001);
     }
 
     public override Vector3 GetHitPoint(Vector3 point, bool transformBack)

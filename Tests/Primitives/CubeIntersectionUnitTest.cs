@@ -22,7 +22,7 @@ public class CubeIntersectionUnitTest
     public void TestIntersectionTwoPointsInLocalSpace()
     {
         var cube = new Cube(Vector3.Zero, Vector3.Zero, Vector3.One);
-        var ray = new Ray(Vector3.One, -Vector3.One);
+        var ray = new Ray(2*Vector3.One, -Vector3.One);
 
         var hit = cube.HitLocal(ray ,false);
         Assert.That(hit, Is.Not.Null);
@@ -33,7 +33,7 @@ public class CubeIntersectionUnitTest
     public void TestIntersectionTouchingInLocalSpace()
     {
         var cube = new Cube(Vector3.Zero, Vector3.Zero, Vector3.One);
-        var ray = new Ray(Vector3.UnitX, Vector3.UnitY);
+        var ray = new Ray(2 * Vector3.UnitX, Vector3.UnitY);
         
         var hit = cube.HitLocal(ray, false);
         Assert.That(hit, Is.Not.Null);

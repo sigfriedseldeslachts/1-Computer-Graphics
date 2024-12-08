@@ -19,14 +19,18 @@ public class Shader
     // Vector m -> normal to the surface at the hit point
     // Vector h -> Halfway vector between s and v => h = (s + v)
     
-    public Rgba32 Shade(HitPoint hitPoint, List<Light> lights, Vector3 rayDirection, UInt16 depth = 0)
+    public Rgba32 Shade(Scene scene, HitPoint hitPoint, Vector3 rayDirection, UInt16 depth = 0)
     {
         if (depth > MaxDepth)
         {
             return new Rgba32(0, 0, 0);
         }
         
-        // Calculate some vectors which are not dependant on the light
+        // Create a feeler ray to check for shadows with a small offset
+        var epsilon = 0.001f;
+        var feelerRay = new Ray(hitPoint.Point - epsilon * rayDirection, Vector3.Zero);
+        
+        // Calculate some vectors which are not dependent on the light
         var v = Vector3.Normalize(-rayDirection); // Camera direction
         var NdotV = Vector3.Dot(hitPoint.Normal, v);
         
@@ -35,10 +39,17 @@ public class Shader
         _colorValues[1] = AmbientColor.Y;
         _colorValues[2] = AmbientColor.Z;
         
-        var material = new StandardMaterial();
+        var material = new StandardMaterial(); // TODO: Assign this to each specific object
 
-        foreach (var light in lights)
+        foreach (var light in scene.Lights)
         {
+            // Compute a direction for the "feeler" ray to check for shadows
+            feelerRay.Direction = light.Direction - hitPoint.Point;
+            /*if (scene.IsInShadow(feelerRay))
+            {
+                // When in shadow, skip the light source calculation
+                continue;
+            }*/
         
             var s = Vector3.Normalize(light.Direction - hitPoint.Point); // Light direction
             var h = Vector3.Normalize(v + s); // Halfway vector
