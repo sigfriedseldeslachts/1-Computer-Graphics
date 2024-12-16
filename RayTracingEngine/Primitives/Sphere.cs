@@ -36,7 +36,7 @@ public class Sphere : AObject
         return [t0, t1];
     }
 
-    public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
+    public override HitPoint[] HitLocal(Ray ray, Ray worldRay)
     {
         var values = SimpleHitLocal(ray);
         if (values.Length == 0) return [];
@@ -49,7 +49,7 @@ public class Sphere : AObject
             {
                 Object = this,
                 HitTime = values[0],
-                Point = GetHitPoint(hit, transformBack),
+                Point = worldRay.GetPoint(values[0]),
                 Normal = Vector3.Normalize(hit - GlobalPosition),
                 IsEntering = true
             });
@@ -62,7 +62,7 @@ public class Sphere : AObject
             {
                 Object = this,
                 HitTime = values[1],
-                Point = GetHitPoint(hit, transformBack),
+                Point = worldRay.GetPoint(values[1]),
                 Normal = Vector3.Normalize(hit - GlobalPosition),
                 IsEntering = false
             });
@@ -71,14 +71,13 @@ public class Sphere : AObject
         return Hits.ToArray();
     }
 
-    public override bool HasHit(Ray ray)
+    public override bool HasShadowHit(Ray ray)
     {
         var values = SimpleHit(ray);
-        return values.Length != 0 && (values[0] > 0.00001 || values[1] > 0.00001);
-    }
-
-    public override Vector3 GetHitPoint(Vector3 point, bool transformBack)
-    {
-        return transformBack ? Vector3.Transform(point, TransposedInverseTransformMatrix) : point;
+        
+        return values.Length != 0 && // Any of the hit points must lie between 0 and 1 otherwise no hit
+               ( (values[0] > 0 && values[0] < 1) || 
+                 (values[1] > 0 && values[1] < 1))
+               ;
     }
 }

@@ -43,11 +43,8 @@ public class Camera(Scene scene, Vector3 position, int width, int height)
                 // Now we need to create a ray direction
                 ray.Direction = Vector3.Normalize(new Vector3(x, y, -position.Z));
                 
-                // Hit each object and add the hits to the list
-                scene.Objects.ForEach(obj => Hits.AddRange(obj.Hit(ray)) );
-
                 // Draw the pixel
-                DrawPixel(colPos, rowPos, Hits, ray.Direction);
+                DrawPixel(colPos, rowPos, scene.GetBestHit(ray), ray.Direction);
             }
         }
         
@@ -59,19 +56,16 @@ public class Camera(Scene scene, Vector3 position, int width, int height)
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
-    /// <param name="hits"></param>
+    /// <param name="hitPoint"></param>
     /// <param name="rayDirection"></param>
-    public void DrawPixel(int x, int y, List<HitPoint> hits, Vector3 rayDirection)
+    private void DrawPixel(int x, int y, HitPoint? hitPoint, Vector3 rayDirection)
     {
-        if (hits.Count == 0)
+        if (hitPoint == null)
         {
             Image[x, y] = new Rgba32(0, 0, 0);
             return;
         }
         
-        // Go over each hitInfo and their hits and get the smallest hit time
-        var hit = hits.OrderBy(h => h.HitTime).First();
-        
-        Image[x, y] = Material.Shade(scene, hit, rayDirection);
+        Image[x, y] = Material.Shade(scene, hitPoint, rayDirection);
     }
 }

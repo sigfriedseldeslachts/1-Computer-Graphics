@@ -21,10 +21,7 @@ public class Shader
     
     public Rgba32 Shade(Scene scene, HitPoint hitPoint, Vector3 rayDirection, UInt16 depth = 0)
     {
-        if (depth > MaxDepth)
-        {
-            return new Rgba32(0, 0, 0);
-        }
+        if (depth > MaxDepth) return new Rgba32(0, 0, 0);
         
         // Create a feeler ray to check for shadows with a small offset
         var epsilon = 0.001f;
@@ -44,14 +41,14 @@ public class Shader
         foreach (var light in scene.Lights)
         {
             // Compute a direction for the "feeler" ray to check for shadows
-            feelerRay.Direction = light.Direction - hitPoint.Point;
-            /*if (scene.IsInShadow(feelerRay))
+            feelerRay.Direction = light.GlobalPosition - hitPoint.Point;
+            if (scene.IsInShadow(feelerRay))
             {
                 // When in shadow, skip the light source calculation
                 continue;
-            }*/
+            }
         
-            var s = Vector3.Normalize(light.Direction - hitPoint.Point); // Light direction
+            var s = Vector3.Normalize(feelerRay.Direction); // Light direction
             var h = Vector3.Normalize(v + s); // Halfway vector
         
             var NdotS = Vector3.Dot(hitPoint.Normal, s);

@@ -72,7 +72,7 @@ public class Cube : AObject
         return [tIn, inSurface, tOut, outSurface];
     }
     
-    public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
+    public override HitPoint[] HitLocal(Ray ray, Ray worldRay)
     {
         var values = SimpleHitLocal(ray);
         if (values.Length == 0) return [];
@@ -84,7 +84,7 @@ public class Cube : AObject
             {
                 Object = this,
                 HitTime = values[0],
-                Point = GetHitPoint(ray.GetPoint(values[0]), transformBack),
+                Point = worldRay.GetPoint(values[0]),
                 Normal = GetCorrectedNormal(GetUnitNormal((int) values[1]), ray.Direction),
                 IsEntering = true
             });
@@ -96,7 +96,7 @@ public class Cube : AObject
             {
                 Object = this,
                 HitTime = values[2],
-                Point = GetHitPoint(ray.GetPoint(values[2]), transformBack),
+                Point = worldRay.GetPoint(values[2]),
                 SurfaceIndex = (int) values[3],
                 Normal = GetCorrectedNormal(GetUnitNormal((int) values[3]), ray.Direction),
                 IsEntering = false
@@ -106,15 +106,12 @@ public class Cube : AObject
         return Hits.ToArray();
     }
 
-    public override bool HasHit(Ray ray)
+    public override bool HasShadowHit(Ray ray)
     {
         var values = SimpleHit(ray);
-        return values.Length != 0 && (values[0] > 0.00001 || values[2] > 0.00001);
-    }
-
-    public override Vector3 GetHitPoint(Vector3 point, bool transformBack)
-    {
-        return transformBack ? Vector3.Transform(point, TransposedInverseTransformMatrix) : point;
+        
+        // Any of the hit points must lie between 0 and 1
+        return values.Length != 0 && ((values[0] > 0 && values[0] < 1) || (values[2] > 0 && values[2] < 1));
     }
 
     public static Vector3 GetUnitNormal(int surfaceIndex)

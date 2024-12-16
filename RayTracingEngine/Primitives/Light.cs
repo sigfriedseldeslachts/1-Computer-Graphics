@@ -7,12 +7,10 @@ public class Light : AObject
 {
     public float Intensity { get; set; }
     public Vector3 Color { get; set; } = Vector3.One;
-    public Vector3 Direction { get; set; }
     
-    public Light(float intensity, Vector3 lightDirection, Vector3 position) : base(position, Vector3.Zero, Vector3.Zero)
+    public Light(float intensity, Vector3 position) : base(position, Vector3.Zero, Vector3.Zero)
     {
         Intensity = intensity;
-        Direction = lightDirection;
         BuildTransformMatrix(position, Vector3.Zero, Vector3.Zero);
     }
     
@@ -21,17 +19,12 @@ public class Light : AObject
         throw new NotImplementedException();
     }
 
-    public override HitPoint[] HitLocal(Ray ray, bool transformBack = true)
+    public override HitPoint[] HitLocal(Ray ray, Ray worldRay)
     {
         throw new NotImplementedException();
     }
 
-    public override bool HasHit(Ray ray)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override Vector3 GetHitPoint(Vector3 point, bool transformBack)
+    public override bool HasShadowHit(Ray ray)
     {
         throw new NotImplementedException();
     }
