@@ -47,9 +47,10 @@ public class Cube : AObject
                     break;
             }
             
-            if (MathF.Abs(denominator) < 0.00001)
+            if (MathF.Abs(denominator) == 0)
             {
-                if (numenator < 0) continue; // Ray is parallel to the face and outside the cube
+                if (numenator < 0) return []; // Ray is parallel to the face and outside the cube, no hit
+                continue;
             }
             
             var t = numenator / denominator;
@@ -67,8 +68,7 @@ public class Cube : AObject
             }
         }
 
-        //if (tIn >= tOut) return []; // This breaks it for some reason?
-        //if (tIn == float.MinValue && tOut == float.MaxValue) return [];
+        if (tIn >= tOut) return []; // Ray misses the cube
         return [tIn, inSurface, tOut, outSurface];
     }
     
