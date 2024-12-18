@@ -6,66 +6,73 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace RayTracingEngine.Rendering;
 
-public class Camera(Scene scene, Vector3 position, int width, int height)
+public class Camera
 {
-    public Vector3 Position { get; set; } = position;
-    public float NearPlaneDistance { get; set; } = 5;
-    public int Width { get; set; } = width;
-    public int Height { get; set; } = height;
+    public Vector3 Position { get; set; }
+    public Vector3 LookingLocation { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
+    public int Fov { get; set; } = 50;
+    public Image<Rgba32> Image { get; set; }
+    private readonly Shader Shader;
+    
+    private Vector3 _n;
+    private Vector3 _u;
+    private Vector3 _v;
+    private int _nearPlaneDistance = 10;
+    private float _H;
+    private float _W;
+    
+    public Camera(Scene scene, Vector3 position, Vector3 lookingLocation, int width, int height)
+    {
+        Shader = new Shader(scene);
+        Image = new Image<Rgba32>(width, height);
+        Position = position;
+        LookingLocation = lookingLocation;
+        Width = width;
+        Height = height;
+        
+        UpdateVectors();
+    }
 
-    public Image<Rgba32> Image { get; set; } = new(width, height);
-    
-    public readonly List<HitPoint> Hits = [];
-    
-    public readonly Shader Material = new();
+    public void UpdateVectors()
+    {
+        _n = Vector3.Normalize(LookingLocation - Position); // Camera direction
+        _u = Vector3.Normalize(Vector3.Cross(Vector3.UnitY, _n)); // Camera "right" vector
+        _v = Vector3.Normalize(Vector3.Cross(_n, _u)); // Camera "up" vector
+        
+        _H = _nearPlaneDistance * MathF.Tan(Fov / 2.0f * (MathF.PI / 180));
+        _W = _H * ((float) Width / Height); // H * Aspect ratio
+    }
 
     public void Render()
     {
         Image = new Image<Rgba32>(Width, Height);
-
-        int rowPos, colPos;
-        var ray = new Ray(Position, Vector3.Zero);
         
-        var H = NearPlaneDistance * MathF.Tan(MathF.PI / 4);
-        var W = H * ((float) Width / Height); // H * Aspect ratio
+        int rowPos, colPos;
         
         for (rowPos = 0; rowPos < Height; rowPos++)
         {
             for (colPos = 0; colPos < Width; colPos++)
             {
-                // For each ray we clear the hits
-                Hits.Clear();
-                
-                // We want the center to be X = 0, Y = 0. Thus, we need to shift everything by half the width and height
-                var x = W * (2*colPos / (float) Width - 1);
-                var y = H * (2*rowPos / (float) Height - 1);
-
-                // Now we need to create a ray direction
-                ray.Direction = Vector3.Normalize(new Vector3(x, y, -position.Z));
-                
-                // Draw the pixel
-                DrawPixel(colPos, rowPos, scene.GetBestHit(ray), ray.Direction);
+                ProcessPixel(rowPos, colPos);
             }
         }
         
         Console.WriteLine("Frame rendered");
     }
-
-    /// <summary>
-    /// Draws a pixel at coordinates x, y with the given hits
-    /// </summary>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
-    /// <param name="hitPoint"></param>
-    /// <param name="rayDirection"></param>
-    private void DrawPixel(int x, int y, HitPoint? hitPoint, Vector3 rayDirection)
+    
+    private void ProcessPixel(int rowPos, int colPos)
     {
-        if (hitPoint == null)
-        {
-            Image[x, y] = new Rgba32(0, 0, 0);
-            return;
-        }
+        var ray = new Ray(Position, Vector3.Zero);
         
-        Image[x, y] = Material.Shade(scene, hitPoint, rayDirection);
+        // We want the center to be X = 0, Y = 0. Thus, we need to shift everything by half the width and height
+        var x = _W * (2*colPos / (float) Width - 1);
+        var y = _H * (2*rowPos / (float) Height - 1);
+        
+        // Now we need to create a ray direction
+        ray.Direction = Vector3.Normalize(_n * _nearPlaneDistance + x * _u + y * _v);
+        
+        Image[colPos, rowPos] = Shader.Shade(ray);
     }
 }

@@ -1,4 +1,5 @@
 using System.Numerics;
+using RayTracingEngine.Material;
 using RayTracingEngine.Math;
 using RayTracingEngine.Rendering;
 
@@ -14,6 +15,8 @@ public abstract class AObject : IRayTraceable
     
     public Matrix4x4 TransformMatrix { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 InverseTransformMatrix { get; set; } = Matrix4x4.Identity;
+    
+    public StandardMaterial Material { get; set; } = new();
     
     public abstract float[] SimpleHitLocal(Ray ray);
     

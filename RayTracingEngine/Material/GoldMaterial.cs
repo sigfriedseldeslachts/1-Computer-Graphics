@@ -11,5 +11,6 @@ public class GoldMaterial : StandardMaterial
         DiffuseColor = new(0.34615f, 0.3143f, 0.0903f, 1.0f);
         Fresnel = new(0.797357f, 0.723991f, 0.208006f, 1.0f);
         SurfaceRoughness = 0.832f;
+        ReflectionCoefficient = 0.7f;
     }
 }

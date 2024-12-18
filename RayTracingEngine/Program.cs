@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using RayTracingEngine.Material;
 using RayTracingEngine.Primitives;
 using RayTracingEngine.Rendering;
 
@@ -15,19 +16,19 @@ public class Program
         var encompassingCube = new Cube(Vector3.Zero, Vector3.Zero, new Vector3(100,100,100));
         
         var sphere = new Sphere(Vector3.Zero,  Vector3.Zero, Vector3.One);
-        var cube = new Cube(new Vector3(3,3,-3),  Vector3.Zero, Vector3.One);
+        var cube = new Cube(new Vector3(0,0,-5),  Vector3.Zero, Vector3.One);
+        cube.Material = new GoldMaterial();
         
-        var light = new Light(1.0f, new Vector3(-3, 0, 10));
-        var light2 = new Light(1.0f, new Vector3(-5, 0, 0));
+        var light = new Light(.5f, new Vector3(-2, 0, 15));
 
         var scene = new Scene();
         scene.AddObject(encompassingCube);
-        //scene.AddObject(cube);
-        scene.AddObject(sphere);
+        scene.AddObject(cube);
+        //scene.AddObject(sphere);
         scene.Lights.Add(light);
         //scene.Lights.Add(light2);
         
-        var camera = new Camera(scene, new Vector3(0, 0, 50), width, height);
+        var camera = new Camera(scene, new Vector3(10, 0, 20), new Vector3(0,0,0), width, height);
         
         // Create the window object
         var window = new ViewWindow(width, height, camera);

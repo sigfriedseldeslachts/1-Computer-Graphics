@@ -8,6 +8,9 @@ public class StandardMaterial
     public Vector4 DiffuseColor { get; set; } = new(0.5f, 0.5f, 0.5f, 1.0f);
     public Vector4 Fresnel { get; set; } = new(0.95f, 0.93f, 0.88f, 1.0f);
     public float SurfaceRoughness { get; set; } = 0.5f;
+    
+    public float ReflectionCoefficient { get; set; } = 0.5f;
+    public float RefractionCoefficient { get; set; } = 0.5f;
 
     public Vector4 EtaFresnel;
     
@@ -16,6 +19,9 @@ public class StandardMaterial
         CalculateEtaFresnel();
     }
 
+    /// <summary>
+    /// Calculates the eta values for the Fresnel function (specular reflection). This is done to speed up the calculations
+    /// </summary>
     private void CalculateEtaFresnel()
     {
         for (var i = 0; i < 3; i++)
