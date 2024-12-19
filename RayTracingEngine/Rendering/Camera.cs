@@ -13,7 +13,10 @@ public class Camera
     public int Width { get; set; }
     public int Height { get; set; }
     public int Fov { get; set; } = 50;
-    public Image<Rgba32> Image { get; set; }
+    
+    private ushort _activeBuffer;
+    private Image<Rgba32> _imageBuffer0;
+    private Image<Rgba32> _imageBuffer1;
     private readonly Shader Shader;
     
     private Vector3 _n;
@@ -26,11 +29,13 @@ public class Camera
     public Camera(Scene scene, Vector3 position, Vector3 lookingLocation, int width, int height)
     {
         Shader = new Shader(scene);
-        Image = new Image<Rgba32>(width, height);
         Position = position;
         LookingLocation = lookingLocation;
         Width = width;
         Height = height;
+        
+        _imageBuffer0 = new Image<Rgba32>(Width, Height);
+        _imageBuffer1 = new Image<Rgba32>(Width, Height);
         
         UpdateVectors();
     }
@@ -47,9 +52,15 @@ public class Camera
 
     public void Render()
     {
-        Image = new Image<Rgba32>(Width, Height);
-        
         int rowPos, colPos;
+        
+        /*Parallel.For(0, Height, (rowPos) =>
+        {
+            for (colPos = 0; colPos < Width; colPos++)
+            {
+                ProcessPixel(rowPos, colPos);
+            }
+        });*/
         
         for (rowPos = 0; rowPos < Height; rowPos++)
         {
@@ -59,13 +70,14 @@ public class Camera
             }
         }
         
+        //_activeBuffer = _activeBuffer == 0 ? (ushort) 1 : (ushort) 0;
         Console.WriteLine("Frame rendered");
     }
     
     private void ProcessPixel(int rowPos, int colPos)
     {
         var ray = new Ray(Position, Vector3.Zero);
-        
+
         // We want the center to be X = 0, Y = 0. Thus, we need to shift everything by half the width and height
         var x = _W * (2*colPos / (float) Width - 1);
         var y = _H * (2*rowPos / (float) Height - 1);
@@ -73,6 +85,26 @@ public class Camera
         // Now we need to create a ray direction
         ray.Direction = Vector3.Normalize(_n * _nearPlaneDistance + x * _u + y * _v);
         
-        Image[colPos, rowPos] = Shader.Shade(ray);
+        var colors = Shader.Shade(ray);
+        
+        // Set the pixel color in the active buffer
+        if (_activeBuffer == 0)
+        {
+            _imageBuffer0[colPos, rowPos] = new Rgba32(colors[0], colors[1], colors[2]);
+        }
+        else
+        {
+            _imageBuffer1[colPos, rowPos] = new Rgba32(colors[0], colors[1], colors[2]);
+        }
+    }
+    
+    /// <summary>
+    /// Returns the image that is currently not being rendered.
+    /// </summary>
+    /// <returns></returns>
+    public Image<Rgba32> GetActiveImage()
+    {
+        return _imageBuffer0;
+        //return _activeBuffer == 0 ? _imageBuffer1 : _imageBuffer0;
     }
 }

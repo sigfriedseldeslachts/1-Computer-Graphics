@@ -12,6 +12,8 @@ public class ViewWindow
     public IWindow Window { get; private set; }
     public OpenGlRenderer GlRenderer { get; private set; }
     public Camera Camera { get; private set; }
+    private Thread _renderThread;
+    private bool _stopRendering = false;
     
     public ViewWindow(int width, int height, Camera camera)
     {
@@ -25,6 +27,7 @@ public class ViewWindow
     public void Run()
     {
         Window.Run();
+        _stopRendering = true;
         Window.Dispose();
     }
 
@@ -34,29 +37,33 @@ public class ViewWindow
         options.Size = new Vector2D<int>(Width, Height);
         options.Title = "Ray Tracing Engine";
         
-        Window = Silk.NET.Windowing.Window.Create(options);
+        // Start an extra thread to render the camera image
+        _renderThread = new Thread(() =>
+        {
+            while (!_stopRendering)
+            {
+                Camera.Render();
+            }
+        });
         
+        Window = Silk.NET.Windowing.Window.Create(options);
         Window.Load += () =>
         {
             GlRenderer = new OpenGlRenderer(Window);
+            _renderThread.Start();
         };
         Window.Update += (deltaTime) =>
         {
-            Camera.Render();
+            
         };
         Window.Render += (deltaTime) =>
         {
-            GlRenderer.SetTextureFromBitmap(Camera.Image);
-            Draw();
+            GlRenderer.SetTextureFromBitmap(Camera.GetActiveImage());
+            GlRenderer.Draw();
         };
         Window.Closing += () =>
         {
             GlRenderer.Dispose();
         };
-    }
-    
-    private void Draw()
-    {
-        GlRenderer.Draw();
     }
 }

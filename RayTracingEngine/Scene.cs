@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using RayTracingEngine.Primitives;
 using RayTracingEngine.Rendering;
 
@@ -5,8 +6,8 @@ namespace RayTracingEngine;
 
 public class Scene
 {
-    public readonly List<IRayTraceable> Objects = [];
-    public readonly List<Light> Lights = [];
+    public readonly ConcurrentBag<IRayTraceable> Objects = new();
+    public readonly ConcurrentBag<Light> Lights = new();
     
     private HitPoint[] _hitPoints = null!;
     private float _hitTime = float.MaxValue;
@@ -30,12 +31,13 @@ public class Scene
         _bestHit = null;
         _hitTime = float.MaxValue;
         
-        // Hit each object and add the hits to the list
-        Objects.ForEach(obj =>
+        // Go over all objects in the scene
+        foreach (var obj in Objects)
         {
             _hitPoints = obj.Hit(ray);
-            if (_hitPoints.Length == 0) return;
-                    
+            if (_hitPoints.Length == 0) continue;
+            
+            // From the hit points, find the one with the smallest hit time
             foreach (var hit in _hitPoints)
             {
                 if (hit.HitTime < _hitTime)
@@ -44,7 +46,7 @@ public class Scene
                     _bestHit = hit;
                 }
             }
-        });
+        }
 
         return _bestHit;
     }
@@ -56,6 +58,6 @@ public class Scene
     
     public void RemoveObject(IRayTraceable obj)
     {
-        Objects.Remove(obj);
+        
     }
 }

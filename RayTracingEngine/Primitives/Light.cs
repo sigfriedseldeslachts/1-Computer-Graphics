@@ -6,11 +6,12 @@ namespace RayTracingEngine.Primitives;
 public class Light : AObject
 {
     public float Intensity { get; set; }
-    public Vector3 Color { get; set; } = Vector3.One;
+    public Vector3 Color { get; set; }
     
-    public Light(float intensity, Vector3 position) : base(position, Vector3.Zero, Vector3.Zero)
+    public Light(float intensity, Vector3 color, Vector3 position) : base(position, Vector3.Zero, Vector3.Zero)
     {
         Intensity = intensity;
+        Color = color;
         BuildTransformMatrix(position, Vector3.Zero, Vector3.Zero);
     }
     

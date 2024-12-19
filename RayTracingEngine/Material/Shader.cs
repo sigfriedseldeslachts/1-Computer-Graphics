@@ -9,7 +9,8 @@ namespace RayTracingEngine.Material;
 /// </summary>
 public class Shader(Scene scene)
 {
-    private const UInt16 MaxDepth = 0;
+    private const ushort MaxDepth = 4;
+    private const float Epsilon = 0.001f;
     private readonly float[] _colorValues = new float[3];
     public Vector3 AmbientColor { get; set; } = new(0.1f, 0.1f, 0.1f);
     public Scene Scene { get; set; } = scene;
@@ -19,17 +20,17 @@ public class Shader(Scene scene)
     // Vector m -> normal to the surface at the hit point
     // Vector h -> Halfway vector between s and v => h = (s + v)
     
-    public Rgba32 Shade(Ray ray, ushort depth = 0)
+    public float[] Shade(Ray ray, ushort depth = 0)
     {
-        if (depth > MaxDepth) return new Rgba32(0, 0, 0); // Stop at max depth
+        if (depth > MaxDepth) return [0, 0, 0]; // Stop at max depth
         
         // Get the hit point
         var hitPoint = Scene.GetBestHit(ray);
-        if (hitPoint == null) return new Rgba32(0, 0, 0);
+        if (hitPoint == null) return [0, 0, 0];
         
         // Create a feeler ray to check for shadows with a small offset
-        const float epsilon = 0.001f;
-        var feelerRay = new Ray(hitPoint.Point - epsilon * ray.Direction, Vector3.Zero);
+        
+        var feelerRay = new Ray(hitPoint.Point - Epsilon * ray.Direction, Vector3.Zero);
         
         // Calculate some vectors which are not dependent on the light
         var v = Vector3.Normalize(-ray.Direction); // Camera direction
@@ -39,6 +40,12 @@ public class Shader(Scene scene)
         _colorValues[0] = AmbientColor.X;
         _colorValues[1] = AmbientColor.Y;
         _colorValues[2] = AmbientColor.Z;
+        
+        // Specify the factors of contribution for the different light components
+        // kD is dependent on our surface roughness
+        const float reflectionContribution = 0.2f; // The reflection contribution
+        var kD = hitPoint.Object.Material.SurfaceRoughness; // The diffuse contribution
+        var kS = 1 - kD - reflectionContribution; // The specular contribution
 
         foreach (var light in Scene.Lights)
         {
@@ -65,9 +72,6 @@ public class Shader(Scene scene)
             // For each RGB-channel, calculate the color value
             for (var i = 0; i < 3; i++)
             {
-                // kD is dependant on our surface roughness
-                var kD = hitPoint.Object.Material.SurfaceRoughness;
-                var kS = 1 - kD;
             
                 var specular = light.Color[i] * kS * CookTorrance.FresnelFunction(NdotS, hitPoint.Object.Material.EtaFresnel[i]) * DtimesG / NdotV;
                 var diffuse = light.Color[i] * kD * hitPoint.Object.Material.DiffuseColor[i];
@@ -83,22 +87,29 @@ public class Shader(Scene scene)
             var reflectionColors = CalculateReflections(hitPoint, ray, depth);
             
             // Add the color values from the reflections
-            _colorValues[0] += hitPoint.Object.Material.ReflectionCoefficient * reflectionColors.R;
-            _colorValues[1] += hitPoint.Object.Material.ReflectionCoefficient * reflectionColors.G;
-            _colorValues[2] += hitPoint.Object.Material.ReflectionCoefficient * reflectionColors.B;
+            _colorValues[0] += hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[0] *
+                               reflectionContribution;
+            _colorValues[1] += hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[1] *
+                               reflectionContribution;
+            _colorValues[2] += hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[2] *
+                               reflectionContribution;
         }
         
         // Clamp RGB values between 0-1 and return
-        return new Rgba32(
+        return [
             System.Math.Clamp(_colorValues[0], 0.0f, 1.0f),
             System.Math.Clamp(_colorValues[1], 0.0f, 1.0f),
             System.Math.Clamp(_colorValues[2], 0.0f, 1.0f)
-        );
+        ];
     }
 
-    private Rgba32 CalculateReflections(HitPoint hitPoint, Ray ray, ushort depth)
+    private float[] CalculateReflections(HitPoint hitPoint, Ray ray, ushort depth)
     {
-        var reflectionRay = new Ray(hitPoint.Point, Vector3.Reflect(ray.Direction, hitPoint.Normal));
+        var reflectionRay = new Ray(
+            hitPoint.Point - Epsilon * ray.Direction, // Offset the ray slightly to avoid self-intersection
+            Vector3.Normalize(
+                ray.Direction - 2 * Vector3.Dot(ray.Direction, hitPoint.Normal) * hitPoint.Normal
+            ));
         
         return Shade(reflectionRay, (ushort) (depth + 1));
     }

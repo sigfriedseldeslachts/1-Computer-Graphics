@@ -15,16 +15,16 @@ public class Program
   
         var encompassingCube = new Cube(Vector3.Zero, Vector3.Zero, new Vector3(100,100,100));
         
-        var sphere = new Sphere(Vector3.Zero,  Vector3.Zero, Vector3.One);
+        var sphere = new Sphere(new Vector3(5, 2, -4),  Vector3.Zero, Vector3.One);
         var cube = new Cube(new Vector3(0,0,-5),  Vector3.Zero, Vector3.One);
         cube.Material = new GoldMaterial();
         
-        var light = new Light(.5f, new Vector3(-2, 0, 15));
+        var light = new Light(.1f, new Vector3(0.7f, .7f, .7f), new Vector3(-2, 0, 15));
 
         var scene = new Scene();
         scene.AddObject(encompassingCube);
         scene.AddObject(cube);
-        //scene.AddObject(sphere);
+        scene.AddObject(sphere);
         scene.Lights.Add(light);
         //scene.Lights.Add(light2);
         
