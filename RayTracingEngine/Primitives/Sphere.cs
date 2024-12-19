@@ -40,7 +40,7 @@ public class Sphere : AObject
     {
         var values = SimpleHitLocal(ray);
         if (values.Length == 0) return [];
-        Hits.Clear();
+        var Hits = new List<HitPoint>();
         
         if (values[0] > 0.00001 || values[0] == 0)
         {
@@ -77,7 +77,6 @@ public class Sphere : AObject
         
         return values.Length != 0 && // Any of the hit points must lie between 0 and 1 otherwise no hit
                ( (values[0] > 0 && values[0] < 1) || 
-                 (values[1] > 0 && values[1] < 1))
-               ;
+                 (values[1] > 0 && values[1] < 1) );
     }
 }

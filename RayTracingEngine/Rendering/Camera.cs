@@ -52,23 +52,15 @@ public class Camera
 
     public void Render()
     {
-        int rowPos, colPos;
-        
-        /*Parallel.For(0, Height, (rowPos) =>
+        ParallelOptions options = new ParallelOptions();
+        options.MaxDegreeOfParallelism = 7;
+        Parallel.For(0, Height, options, rowPos =>
         {
-            for (colPos = 0; colPos < Width; colPos++)
+            for (var colPos = 0; colPos < Width; colPos++)
             {
                 ProcessPixel(rowPos, colPos);
             }
-        });*/
-        
-        for (rowPos = 0; rowPos < Height; rowPos++)
-        {
-            for (colPos = 0; colPos < Width; colPos++)
-            {
-                ProcessPixel(rowPos, colPos);
-            }
-        }
+        });
         
         //_activeBuffer = _activeBuffer == 0 ? (ushort) 1 : (ushort) 0;
         Console.WriteLine("Frame rendered");

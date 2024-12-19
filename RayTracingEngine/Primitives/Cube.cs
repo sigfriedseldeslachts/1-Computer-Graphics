@@ -76,7 +76,7 @@ public class Cube : AObject
     {
         var values = SimpleHitLocal(ray);
         if (values.Length == 0) return [];
-        Hits.Clear();
+        var Hits = new List<HitPoint>();
         
         if (values[0] > 0.00001)
         {

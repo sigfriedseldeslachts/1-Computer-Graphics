@@ -11,7 +11,10 @@ public class Shader(Scene scene)
 {
     private const ushort MaxDepth = 4;
     private const float Epsilon = 0.001f;
-    private readonly float[] _colorValues = new float[3];
+    
+    private const float ReflectionContribution = 0.1f;
+    private const float RefractionContribution = 0.1f;
+    private const float ShadingContribution = 1.0f - ReflectionContribution - RefractionContribution;
     public Vector3 AmbientColor { get; set; } = new(0.1f, 0.1f, 0.1f);
     public Scene Scene { get; set; } = scene;
     
@@ -27,9 +30,10 @@ public class Shader(Scene scene)
         // Get the hit point
         var hitPoint = Scene.GetBestHit(ray);
         if (hitPoint == null) return [0, 0, 0];
+
+        var _colorValues = new float[3];
         
         // Create a feeler ray to check for shadows with a small offset
-        
         var feelerRay = new Ray(hitPoint.Point - Epsilon * ray.Direction, Vector3.Zero);
         
         // Calculate some vectors which are not dependent on the light
@@ -42,10 +46,8 @@ public class Shader(Scene scene)
         _colorValues[2] = AmbientColor.Z;
         
         // Specify the factors of contribution for the different light components
-        // kD is dependent on our surface roughness
-        const float reflectionContribution = 0.2f; // The reflection contribution
         var kD = hitPoint.Object.Material.SurfaceRoughness; // The diffuse contribution
-        var kS = 1 - kD - reflectionContribution; // The specular contribution
+        var kS = 1 - kD; // The specular contribution
 
         foreach (var light in Scene.Lights)
         {
@@ -81,19 +83,19 @@ public class Shader(Scene scene)
         }
         
         // Check if the object is reflective enough to warrant a reflection
-        if (hitPoint.Object.Material.ReflectionCoefficient > 0.6f)
+        float[] reflectionColors = [0.0f, 0.0f, 0.0f];
+        if (hitPoint.Object.Material.ReflectionCoefficient > 0.4f)
         {
-            // Calculate the reflections
-            var reflectionColors = CalculateReflections(hitPoint, ray, depth);
-            
-            // Add the color values from the reflections
-            _colorValues[0] += hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[0] *
-                               reflectionContribution;
-            _colorValues[1] += hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[1] *
-                               reflectionContribution;
-            _colorValues[2] += hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[2] *
-                               reflectionContribution;
+            reflectionColors = CalculateReflections(hitPoint, ray, depth);
         }
+        
+        // Sum all together with their respective coefficients
+        _colorValues[0] = ShadingContribution * _colorValues[0]
+                          + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[0] * ReflectionContribution;
+        _colorValues[1] = ShadingContribution * _colorValues[1]
+                          + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[1] * ReflectionContribution;
+        _colorValues[2] = ShadingContribution * _colorValues[2]
+                          + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[2] * ReflectionContribution;
         
         // Clamp RGB values between 0-1 and return
         return [

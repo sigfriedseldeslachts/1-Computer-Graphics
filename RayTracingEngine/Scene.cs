@@ -8,10 +8,6 @@ public class Scene
 {
     public readonly ConcurrentBag<IRayTraceable> Objects = new();
     public readonly ConcurrentBag<Light> Lights = new();
-    
-    private HitPoint[] _hitPoints = null!;
-    private float _hitTime = float.MaxValue;
-    private HitPoint? _bestHit = null;
 
     public bool IsInShadow(Ray ray)
     {
@@ -28,27 +24,28 @@ public class Scene
 
     public HitPoint? GetBestHit(Ray ray)
     {
-        _bestHit = null;
-        _hitTime = float.MaxValue;
+        HitPoint[] hitPoints;
+        HitPoint? bestHit = null;
+        var hitTime = float.MaxValue;
         
         // Go over all objects in the scene
         foreach (var obj in Objects)
         {
-            _hitPoints = obj.Hit(ray);
-            if (_hitPoints.Length == 0) continue;
+            hitPoints = obj.Hit(ray);
+            if (hitPoints.Length == 0) continue;
             
             // From the hit points, find the one with the smallest hit time
-            foreach (var hit in _hitPoints)
+            foreach (var hit in hitPoints)
             {
-                if (hit.HitTime < _hitTime)
+                if (hit.HitTime < hitTime)
                 {
-                    _hitTime = hit.HitTime;
-                    _bestHit = hit;
+                    hitTime = hit.HitTime;
+                    bestHit = hit;
                 }
             }
         }
 
-        return _bestHit;
+        return bestHit;
     }
     
     public void AddObject(IRayTraceable obj)

@@ -10,9 +10,6 @@ public abstract class AObject : IRayTraceable
     public Vector3 GlobalPosition { get; set; }
     public Vector3 Rotation { get; set; }
     public Vector3 Scale { get; set; }
-    
-    public readonly List<HitPoint> Hits = [];
-    
     public Matrix4x4 TransformMatrix { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 InverseTransformMatrix { get; set; } = Matrix4x4.Identity;
     
