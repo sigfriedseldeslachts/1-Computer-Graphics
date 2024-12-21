@@ -29,7 +29,7 @@ public interface IRayTraceable
     /// <param name="ray"></param>
     /// <param name="worldRay"></param>
     /// <returns></returns>
-    HitPoint[] HitLocal(Ray ray, Ray worldRay);
+    HitPoint?[] HitLocal(Ray ray, Ray worldRay);
     
     /// <summary>
     /// Check if the ray intersects with the object. The ray is in world space.
@@ -37,5 +37,5 @@ public interface IRayTraceable
     /// </summary>
     /// <param name="ray"></param>
     /// <returns></returns>
-    HitPoint[] Hit(Ray ray);
+    HitPoint?[] Hit(Ray ray);
 }

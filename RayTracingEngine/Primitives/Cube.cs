@@ -72,27 +72,27 @@ public class Cube : AObject
         return [tIn, inSurface, tOut, outSurface];
     }
     
-    public override HitPoint[] HitLocal(Ray ray, Ray worldRay)
+    public override HitPoint?[] HitLocal(Ray ray, Ray worldRay)
     {
         var values = SimpleHitLocal(ray);
         if (values.Length == 0) return [];
-        var Hits = new List<HitPoint>();
+        var hits = new HitPoint[2];
         
         if (values[0] > 0.00001)
         {
-            Hits.Add(new HitPoint
+            hits[0] = new HitPoint
             {
                 Object = this,
                 HitTime = values[0],
                 Point = worldRay.GetPoint(values[0]),
                 Normal = GetCorrectedNormal(GetUnitNormal((int) values[1]), ray.Direction),
                 IsEntering = true
-            });
+            };
         }
         
         if (values[2] > 0.00001 && values[2] < 100000.0f)
         {
-            Hits.Add(new HitPoint
+            hits[1] = new HitPoint
             {
                 Object = this,
                 HitTime = values[2],
@@ -100,10 +100,10 @@ public class Cube : AObject
                 SurfaceIndex = (int) values[3],
                 Normal = GetCorrectedNormal(GetUnitNormal((int) values[3]), ray.Direction),
                 IsEntering = false
-            });
+            };
         }
-        
-        return Hits.ToArray();
+
+        return hits;
     }
 
     public override bool HasShadowHit(Ray ray)

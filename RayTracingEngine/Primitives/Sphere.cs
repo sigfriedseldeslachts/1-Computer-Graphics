@@ -40,35 +40,35 @@ public class Sphere : AObject
     {
         var values = SimpleHitLocal(ray);
         if (values.Length == 0) return [];
-        var Hits = new List<HitPoint>();
+        var hits = new HitPoint[2];
         
         if (values[0] > 0.00001 || values[0] == 0)
         {
             var hit = ray.GetPoint(values[0]);
-            Hits.Add(new HitPoint
+            hits[0] = new HitPoint
             {
                 Object = this,
                 HitTime = values[0],
                 Point = worldRay.GetPoint(values[0]),
                 Normal = Vector3.Normalize(hit - GlobalPosition),
                 IsEntering = true
-            });
+            };
         }
 
         if (values[1] > 0.00001)
         {
             var hit = ray.GetPoint(values[1]);
-            Hits.Add(new HitPoint
+            hits[1] = new HitPoint
             {
                 Object = this,
                 HitTime = values[1],
                 Point = worldRay.GetPoint(values[1]),
                 Normal = Vector3.Normalize(hit - GlobalPosition),
                 IsEntering = false
-            });
+            };
         }
         
-        return Hits.ToArray();
+        return hits.ToArray();
     }
 
     public override bool HasShadowHit(Ray ray)

@@ -17,7 +17,7 @@ public class Camera
     private ushort _activeBuffer;
     private Image<Rgba32> _imageBuffer0;
     private Image<Rgba32> _imageBuffer1;
-    private readonly Shader Shader;
+    private readonly Shader _shader;
     
     private Vector3 _n;
     private Vector3 _u;
@@ -26,9 +26,11 @@ public class Camera
     private float _H;
     private float _W;
     
+    private readonly ParallelOptions _parallelOptions = new() { MaxDegreeOfParallelism = 6 };
+    
     public Camera(Scene scene, Vector3 position, Vector3 lookingLocation, int width, int height)
     {
-        Shader = new Shader(scene);
+        _shader = new Shader(scene);
         Position = position;
         LookingLocation = lookingLocation;
         Width = width;
@@ -52,9 +54,7 @@ public class Camera
 
     public void Render()
     {
-        ParallelOptions options = new ParallelOptions();
-        options.MaxDegreeOfParallelism = 7;
-        Parallel.For(0, Height, options, rowPos =>
+        Parallel.For(0, Height, _parallelOptions, rowPos =>
         {
             for (var colPos = 0; colPos < Width; colPos++)
             {
@@ -77,7 +77,7 @@ public class Camera
         // Now we need to create a ray direction
         ray.Direction = Vector3.Normalize(_n * _nearPlaneDistance + x * _u + y * _v);
         
-        var colors = Shader.Shade(ray);
+        var colors = _shader.Shade(ray);
         
         // Set the pixel color in the active buffer
         if (_activeBuffer == 0)

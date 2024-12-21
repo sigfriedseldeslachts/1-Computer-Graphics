@@ -17,7 +17,7 @@ public abstract class AObject : IRayTraceable
     
     public abstract float[] SimpleHitLocal(Ray ray);
     
-    public abstract HitPoint[] HitLocal(Ray ray, Ray worldRay);
+    public abstract HitPoint?[] HitLocal(Ray ray, Ray worldRay);
 
     protected AObject(Vector3 position, Vector3 rotation, Vector3 scale)
     {
@@ -44,7 +44,7 @@ public abstract class AObject : IRayTraceable
         return SimpleHitLocal(ray.Transform(InverseTransformMatrix));
     }
     
-    public HitPoint[] Hit(Ray ray)
+    public HitPoint?[] Hit(Ray ray)
     {
         return HitLocal(ray.Transform(InverseTransformMatrix), ray);
     }

@@ -25,8 +25,8 @@ public class Program
         scene.AddObject(encompassingCube);
         scene.AddObject(cube);
         scene.AddObject(sphere);
+        //scene.AddObject(cone);
         scene.Lights.Add(light);
-        //scene.Lights.Add(light2);
         
         var camera = new Camera(scene, new Vector3(10, 0, 20), new Vector3(0,0,0), width, height);
         

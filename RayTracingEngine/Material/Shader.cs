@@ -15,8 +15,8 @@ public class Shader(Scene scene)
     private const float ReflectionContribution = 0.1f;
     private const float RefractionContribution = 0.1f;
     private const float ShadingContribution = 1.0f - ReflectionContribution - RefractionContribution;
-    public Vector3 AmbientColor { get; set; } = new(0.1f, 0.1f, 0.1f);
-    public Scene Scene { get; set; } = scene;
+    private Vector3 AmbientColor { get; set; } = new(0.1f, 0.1f, 0.1f);
+    private Scene Scene { get; set; } = scene;
     
     // Vector s -> From the light source to the hit point => s = lightDirection - hitPoint.Position
     // Vector v -> Points to the camera => v = -rayDirection
@@ -31,7 +31,7 @@ public class Shader(Scene scene)
         var hitPoint = Scene.GetBestHit(ray);
         if (hitPoint == null) return [0, 0, 0];
 
-        var _colorValues = new float[3];
+        var colorValues = new float[3];
         
         // Create a feeler ray to check for shadows with a small offset
         var feelerRay = new Ray(hitPoint.Point - Epsilon * ray.Direction, Vector3.Zero);
@@ -41,9 +41,9 @@ public class Shader(Scene scene)
         var NdotV = Vector3.Dot(hitPoint.Normal, v);
         
         // Reset color values to ambient color
-        _colorValues[0] = AmbientColor.X;
-        _colorValues[1] = AmbientColor.Y;
-        _colorValues[2] = AmbientColor.Z;
+        colorValues[0] = AmbientColor.X;
+        colorValues[1] = AmbientColor.Y;
+        colorValues[2] = AmbientColor.Z;
         
         // Specify the factors of contribution for the different light components
         var kD = hitPoint.Object.Material.SurfaceRoughness; // The diffuse contribution
@@ -74,11 +74,10 @@ public class Shader(Scene scene)
             // For each RGB-channel, calculate the color value
             for (var i = 0; i < 3; i++)
             {
-            
                 var specular = light.Color[i] * kS * CookTorrance.FresnelFunction(NdotS, hitPoint.Object.Material.EtaFresnel[i]) * DtimesG / NdotV;
                 var diffuse = light.Color[i] * kD * hitPoint.Object.Material.DiffuseColor[i];
 
-                _colorValues[i] += specular + diffuse;
+                colorValues[i] += specular + diffuse;
             }
         }
         
@@ -89,19 +88,26 @@ public class Shader(Scene scene)
             reflectionColors = CalculateReflections(hitPoint, ray, depth);
         }
         
+        // Refraction
+        float[] refractedColors = [0.0f, 0.0f, 0.0f];
+        
+        
         // Sum all together with their respective coefficients
-        _colorValues[0] = ShadingContribution * _colorValues[0]
-                          + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[0] * ReflectionContribution;
-        _colorValues[1] = ShadingContribution * _colorValues[1]
-                          + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[1] * ReflectionContribution;
-        _colorValues[2] = ShadingContribution * _colorValues[2]
-                          + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[2] * ReflectionContribution;
+        colorValues[0] = ShadingContribution * colorValues[0]
+                          + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[0] * ReflectionContribution
+                          + hitPoint.Object.Material.RefractionCoefficient * refractedColors[0] * RefractionContribution;
+        colorValues[1] = ShadingContribution * colorValues[1]
+                          + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[1] * ReflectionContribution
+                          + hitPoint.Object.Material.RefractionCoefficient * refractedColors[1] * RefractionContribution;
+        colorValues[2] = ShadingContribution * colorValues[2]
+                          + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[2] * ReflectionContribution
+                          + hitPoint.Object.Material.RefractionCoefficient * refractedColors[2] * RefractionContribution;
         
         // Clamp RGB values between 0-1 and return
         return [
-            System.Math.Clamp(_colorValues[0], 0.0f, 1.0f),
-            System.Math.Clamp(_colorValues[1], 0.0f, 1.0f),
-            System.Math.Clamp(_colorValues[2], 0.0f, 1.0f)
+            System.Math.Clamp(colorValues[0], 0.0f, 1.0f),
+            System.Math.Clamp(colorValues[1], 0.0f, 1.0f),
+            System.Math.Clamp(colorValues[2], 0.0f, 1.0f)
         ];
     }
 
@@ -114,5 +120,10 @@ public class Shader(Scene scene)
             ));
         
         return Shade(reflectionRay, (ushort) (depth + 1));
+    }
+    
+    private float[] CalculateRefraction(HitPoint hitPoint, Ray ray, ushort depth)
+    {
+        return [0.0f, 0.0f, 0.0f];
     }
 }

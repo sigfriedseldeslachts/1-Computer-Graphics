@@ -11,20 +11,12 @@ public class Scene
 
     public bool IsInShadow(Ray ray)
     {
-        foreach (var obj in Objects)
-        {
-            if (obj.HasShadowHit(ray))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return Objects.Any(obj => obj.HasShadowHit(ray));
     }
 
     public HitPoint? GetBestHit(Ray ray)
     {
-        HitPoint[] hitPoints;
+        HitPoint?[] hitPoints;
         HitPoint? bestHit = null;
         var hitTime = float.MaxValue;
         
@@ -37,11 +29,11 @@ public class Scene
             // From the hit points, find the one with the smallest hit time
             foreach (var hit in hitPoints)
             {
-                if (hit.HitTime < hitTime)
-                {
-                    hitTime = hit.HitTime;
-                    bestHit = hit;
-                }
+                // Skip if the hit time is greater than the current hit time
+                if (hit == null || hit.HitTime >= hitTime) continue;
+                
+                hitTime = hit.HitTime;
+                bestHit = hit;
             }
         }
 
