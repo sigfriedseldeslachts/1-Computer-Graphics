@@ -8,14 +8,14 @@ namespace RayTracingEngine.OpenGL;
 
 public class OpenGlRenderer
 {
-    private static float[] vertices = {
+    private static readonly float[] Vertices = {
         // Positions  // Texture Coords
         1,  1, 0,     1, 1, // top right
         1, -1, 0,     1, 0, // bottom right
        -1, -1, 0,     0, 0, // bottom left
        -1,  1, 0,     0, 1  // top left 
     };
-    private static int[] indices = [0,1,2, 0,2,3];
+    private static readonly int[] Indices = [0,1,2, 0,2,3];
     
     private readonly GL _gl;
     private readonly OpenGLShader _shader;
@@ -25,9 +25,7 @@ public class OpenGlRenderer
     public OpenGlRenderer(IWindow window)
     {
         _gl = GL.GetApi(window);
-        _shader = new OpenGLShader(window,
-            "/home/sigfried/Projects/School/RayTracingEngine/RayTracingEngine/OpenGL/vertex.glsl",
-            "/home/sigfried/Projects/School/RayTracingEngine/RayTracingEngine/OpenGL/fragment.glsl");
+        _shader = new OpenGLShader(window);
         
         Create2DPlane();
     }
@@ -40,6 +38,9 @@ public class OpenGlRenderer
         _shader.Dispose();
     }
 
+    /// <summary>
+    /// Creates a 2D plane with a texture to display our rendered image
+    /// </summary>
     private unsafe void Create2DPlane()
     {
         _vao = _gl.GenVertexArray();
@@ -48,17 +49,17 @@ public class OpenGlRenderer
         // Vertex Buffer Object
         _vbo = _gl.GenBuffer();
         _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
-        fixed (void* v = vertices)
+        fixed (void* v = Vertices)
         {
-            _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) vertices.Length * 32, v, BufferUsageARB.StaticDraw);
+            _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) Vertices.Length * 32, v, BufferUsageARB.StaticDraw);
         }
         
         // Element Array Object
         _ebo = _gl.GenBuffer();
         _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
-        fixed (void* i = indices)
+        fixed (void* i = Indices)
         {
-            _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) indices.Length * 4, i, BufferUsageARB.StaticDraw);
+            _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) Indices.Length * 4, i, BufferUsageARB.StaticDraw);
         }
         
         //// Vertex Attribute Pointers
@@ -103,6 +104,6 @@ public class OpenGlRenderer
         _gl.ActiveTexture(TextureUnit.Texture0);
         _gl.BindTexture(TextureTarget.Texture2D, _texture);
         
-        _gl.DrawElements(GLEnum.Triangles, (uint) indices.Length, GLEnum.UnsignedInt, null);
+        _gl.DrawElements(GLEnum.Triangles, (uint) Indices.Length, GLEnum.UnsignedInt, null);
     }
 }

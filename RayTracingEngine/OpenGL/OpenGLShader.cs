@@ -7,15 +7,41 @@ namespace RayTracingEngine.OpenGL;
 public class OpenGLShader
 {
     private readonly GL _gl;
-    public uint ShaderProgId { get; }
-    
-    public OpenGLShader(IWindow window, string vertexPath, string fragmentPath)
+    private uint ShaderProgId { get; }
+
+    private const string VertexShader = """
+                                         #version 330 core
+                                         layout (location = 0) in vec3 aPos;
+                                         layout (location = 1) in vec2 aTexCoords;
+                                         out vec2 frag_texCoords;
+
+                                         void main()
+                                         {
+                                             gl_Position = vec4(aPos, 1.0);
+                                             
+                                             // Passthrough the texture
+                                             frag_texCoords = aTexCoords;
+                                         }
+                                         """;
+    private const string FragmentShader = """
+                                           #version 330 core
+                                           in vec2 frag_texCoords;
+                                           out vec4 FragColor;
+                                           uniform sampler2D uTexture;
+
+                                           void main()
+                                           {
+                                               FragColor = texture(uTexture, frag_texCoords);
+                                           }
+                                           """;
+
+    public OpenGLShader(IWindow window)
     {
         _gl = GL.GetApi(window);
         
         // Load the vertex and fragment shaders
-        var vertexShader = CreateShader(LoadShader(vertexPath), ShaderType.VertexShader);
-        var fragmentShader = CreateShader(LoadShader(fragmentPath), ShaderType.FragmentShader);
+        var vertexShader = CreateShader(VertexShader, ShaderType.VertexShader);
+        var fragmentShader = CreateShader(FragmentShader, ShaderType.FragmentShader);
         
         // Compile the shaders
         ShaderProgId = _gl.CreateProgram();
@@ -50,33 +76,8 @@ public class OpenGLShader
         return shader;
     }
     
-    public static string LoadShader(string path)
-    {
-        return File.ReadAllText(path);
-    }
-    
     public void Use()
     {
         _gl.UseProgram(ShaderProgId);
-    }
-    
-    public void SetUniformMat3(string name, Matrix4x4 value)
-    {
-        var location = _gl.GetUniformLocation(ShaderProgId, name);
-        if (location == -1) throw new Exception($"{name} uniform not found on shader.");
-        unsafe
-        {
-            _gl.UniformMatrix4(location, 1, false, (float*) &value);
-        }
-    }
-    
-    public void SetUniformMat4(string name, Matrix4x4 value)
-    {
-        var location = _gl.GetUniformLocation(ShaderProgId, name);
-        if (location == -1) throw new Exception($"{name} uniform not found on shader.");
-        unsafe
-        {
-            _gl.UniformMatrix4(location, 1, false, (float*) &value);
-        }
     }
 }

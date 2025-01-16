@@ -1,4 +1,5 @@
 using System.Numerics;
+using RayTracingEngine.Primitives;
 using RayTracingEngine.Rendering;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -30,8 +31,6 @@ public class Shader(Scene scene)
         // Get the hit point
         var hitPoint = Scene.GetBestHit(ray);
         if (hitPoint == null) return [0, 0, 0];
-
-        var colorValues = new float[3];
         
         // Create a feeler ray to check for shadows with a small offset
         var feelerRay = new Ray(hitPoint.Point - Epsilon * ray.Direction, Vector3.Zero);
@@ -40,10 +39,13 @@ public class Shader(Scene scene)
         var v = Vector3.Normalize(-ray.Direction); // Camera direction
         var NdotV = Vector3.Dot(hitPoint.Normal, v);
         
-        // Reset color values to ambient color
-        colorValues[0] = AmbientColor.X;
-        colorValues[1] = AmbientColor.Y;
-        colorValues[2] = AmbientColor.Z;
+        // Set initial color values to ambient color
+        var colorValues = new[]
+        {
+            AmbientColor.X,
+            AmbientColor.Y,
+            AmbientColor.Z
+        };
         
         // Specify the factors of contribution for the different light components
         var kD = hitPoint.Object.Material.SurfaceRoughness; // The diffuse contribution
@@ -90,18 +92,21 @@ public class Shader(Scene scene)
         
         // Refraction
         float[] refractedColors = [0.0f, 0.0f, 0.0f];
-        
+        if (hitPoint.Object.Material.TransparencyCoefficient > 0.5f)
+        {
+            refractedColors = CalculateRefraction(hitPoint, ray, depth);
+        }
         
         // Sum all together with their respective coefficients
         colorValues[0] = ShadingContribution * colorValues[0]
                           + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[0] * ReflectionContribution
-                          + hitPoint.Object.Material.RefractionCoefficient * refractedColors[0] * RefractionContribution;
+                          + hitPoint.Object.Material.RefractionIndex * refractedColors[0] * RefractionContribution;
         colorValues[1] = ShadingContribution * colorValues[1]
                           + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[1] * ReflectionContribution
-                          + hitPoint.Object.Material.RefractionCoefficient * refractedColors[1] * RefractionContribution;
+                          + hitPoint.Object.Material.RefractionIndex * refractedColors[1] * RefractionContribution;
         colorValues[2] = ShadingContribution * colorValues[2]
                           + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[2] * ReflectionContribution
-                          + hitPoint.Object.Material.RefractionCoefficient * refractedColors[2] * RefractionContribution;
+                          + hitPoint.Object.Material.RefractionIndex * refractedColors[2] * RefractionContribution;
         
         // Clamp RGB values between 0-1 and return
         return [
@@ -124,6 +129,50 @@ public class Shader(Scene scene)
     
     private float[] CalculateRefraction(HitPoint hitPoint, Ray ray, ushort depth)
     {
-        return [0.0f, 0.0f, 0.0f];
+        var refractedRay = new Ray(hitPoint.Point - Epsilon * hitPoint.Normal, Vector3.Zero, ray.InsideObjects ?? []);
+        var cValues = GetRefractiveIndexesFromRay(hitPoint, ray, refractedRay);
+        
+        var n = cValues[0] / cValues[1];
+        var cosI = -Vector3.Dot(ray.Direction, hitPoint.Normal);
+        var sinT2 = n * n * (1.0f - cosI * cosI);
+        
+        if (sinT2 > 1.0f) return [0.0f, 0.0f, 0.0f]; // Total internal reflection
+        
+        var cosT = System.MathF.Sqrt(1.0f - sinT2);
+        var refractionDirection = n * ray.Direction + (n * cosI - cosT) * hitPoint.Normal;
+        
+        refractedRay.Direction = Vector3.Normalize(refractionDirection);
+        return Shade(refractedRay, (ushort) (depth + 1));
+    }
+
+    /// <summary>
+    /// Returns the correct c1 and c2 for the refraction calculation.
+    /// Also updates the refractive indexes list. 
+    /// </summary>
+    /// <param name="hitPoint"></param>
+    /// <param name="ray"></param>
+    /// <param name="refractedRay"></param>
+    /// <returns></returns>
+    private float[] GetRefractiveIndexesFromRay(HitPoint hitPoint, Ray ray, Ray refractedRay)
+    {
+        // Check if we are entering or exiting the object and add or remove the object from the list respectively
+        if (hitPoint.IsEntering)
+        {
+            refractedRay.InsideObjects.Add(hitPoint.Object);
+        }
+        else
+        {
+            refractedRay.InsideObjects.Remove(hitPoint.Object);
+        }
+        
+        // From the original ray find c1, if no objects use air. Otherwise, use the latest object.
+        var c1 = ray.InsideObjects == null || ray.InsideObjects.Count == 0 ? 1.0f 
+            : ray.InsideObjects[^1].Material.RefractionIndex;
+        
+        // Same for c2 but then for the refracted ray
+        var c2 = refractedRay.InsideObjects.Count == 0 ? 1.0f
+            : refractedRay.InsideObjects[^1].Material.RefractionIndex;
+        
+        return [c1, c2];
     }
 }

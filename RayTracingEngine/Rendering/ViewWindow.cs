@@ -43,6 +43,7 @@ public class ViewWindow
             while (!_stopRendering)
             {
                 Camera.Render();
+                _stopRendering = true; // Temp: only render once!
             }
         });
         
