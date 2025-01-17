@@ -10,13 +10,13 @@ namespace RayTracingEngine.Material;
 /// </summary>
 public class Shader(Scene scene)
 {
-    private const ushort MaxDepth = 4;
+    private const ushort MaxDepth = 6;
     private const float Epsilon = 0.001f;
     
     private const float ReflectionContribution = 0.1f;
     private const float RefractionContribution = 0.1f;
     private const float ShadingContribution = 1.0f - ReflectionContribution - RefractionContribution;
-    private Vector3 AmbientColor { get; set; } = new(0.1f, 0.1f, 0.1f);
+    private float[] AmbientColor { get; } = [0.1f, 0.1f, 0.1f, 1.0f];
     private Scene Scene { get; set; } = scene;
     
     // Vector s -> From the light source to the hit point => s = lightDirection - hitPoint.Position
@@ -26,11 +26,11 @@ public class Shader(Scene scene)
     
     public float[] Shade(Ray ray, ushort depth = 0)
     {
-        if (depth > MaxDepth) return [0, 0, 0]; // Stop at max depth
+        if (depth > MaxDepth) return [0, 0, 0, 0]; // Stop at max depth
         
         // Get the hit point
         var hitPoint = Scene.GetBestHit(ray);
-        if (hitPoint == null) return [0, 0, 0];
+        if (hitPoint == null) return AmbientColor; // Return the ambient color if no hit
         
         // Create a feeler ray to check for shadows with a small offset
         var feelerRay = new Ray(hitPoint.Point - Epsilon * ray.Direction, Vector3.Zero);
@@ -39,18 +39,15 @@ public class Shader(Scene scene)
         var v = Vector3.Normalize(-ray.Direction); // Camera direction
         var NdotV = Vector3.Dot(hitPoint.Normal, v);
         
-        // Set initial color values to ambient color
-        var colorValues = new[]
-        {
-            AmbientColor.X,
-            AmbientColor.Y,
-            AmbientColor.Z
-        };
-        
         // Specify the factors of contribution for the different light components
         var kD = hitPoint.Object.Material.SurfaceRoughness; // The diffuse contribution
         var kS = 1 - kD; // The specular contribution
-
+        
+        // Get the color values associated with the material at the hitpoint
+        var materialColor = hitPoint.Object.Material.GetDiffuseColor(hitPoint);
+        var colorValues = hitPoint.Object.Material.GetAmbientColor(hitPoint);
+        
+        // Next we need to compute the shading for each light source
         foreach (var light in Scene.Lights)
         {
             // Compute a direction for the "feeler" ray to check for shadows
@@ -73,29 +70,29 @@ public class Shader(Scene scene)
             var DtimesG = CookTorrance.NormalDistributionFunction(NdotH, hitPoint.Object.Material.SurfaceRoughness)
                           * CookTorrance.Geometry(NdotH, NdotS, NdotV, HdotS);
 
-            // For each RGB-channel, calculate the color value
+            // For each RGBA-channel, calculate the color value
             for (var i = 0; i < 3; i++)
             {
                 var specular = light.Color[i] * kS * CookTorrance.FresnelFunction(NdotS, hitPoint.Object.Material.EtaFresnel[i]) * DtimesG / NdotV;
-                var diffuse = light.Color[i] * kD * hitPoint.Object.Material.DiffuseColor[i];
+                var diffuse = light.Color[i] * kD * materialColor[i];
 
                 colorValues[i] += specular + diffuse;
             }
         }
         
         // Check if the object is reflective enough to warrant a reflection
-        float[] reflectionColors = [0.0f, 0.0f, 0.0f];
-        if (hitPoint.Object.Material.ReflectionCoefficient > 0.4f)
+        float[] reflectionColors = [0.0f, 0.0f, 0.0f, 1.0f];
+        /*if (hitPoint.Object.Material.ReflectionCoefficient > 0.4f)
         {
             reflectionColors = CalculateReflections(hitPoint, ray, depth);
-        }
+        }*/
         
         // Refraction
-        float[] refractedColors = [0.0f, 0.0f, 0.0f];
-        if (hitPoint.Object.Material.TransparencyCoefficient > 0.5f)
+        float[] refractedColors = [0.0f, 0.0f, 0.0f, 1.0f];
+        /*if (hitPoint.Object.Material.TransparencyCoefficient > 0.5f)
         {
             refractedColors = CalculateRefraction(hitPoint, ray, depth);
-        }
+        }*/
         
         // Sum all together with their respective coefficients
         colorValues[0] = ShadingContribution * colorValues[0]
@@ -108,11 +105,13 @@ public class Shader(Scene scene)
                           + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[2] * ReflectionContribution
                           + hitPoint.Object.Material.RefractionIndex * refractedColors[2] * RefractionContribution;
         
+        
         // Clamp RGB values between 0-1 and return
         return [
             System.Math.Clamp(colorValues[0], 0.0f, 1.0f),
             System.Math.Clamp(colorValues[1], 0.0f, 1.0f),
-            System.Math.Clamp(colorValues[2], 0.0f, 1.0f)
+            System.Math.Clamp(colorValues[2], 0.0f, 1.0f),
+            1.0f
         ];
     }
 
@@ -129,19 +128,18 @@ public class Shader(Scene scene)
     
     private float[] CalculateRefraction(HitPoint hitPoint, Ray ray, ushort depth)
     {
-        var refractedRay = new Ray(hitPoint.Point - Epsilon * hitPoint.Normal, Vector3.Zero, ray.InsideObjects ?? []);
+        var refractedRay = new Ray(Vector3.Zero, Vector3.Zero, ray.InsideObjects ?? []);
         var cValues = GetRefractiveIndexesFromRay(hitPoint, ray, refractedRay);
         
-        var n = cValues[0] / cValues[1];
-        var cosI = -Vector3.Dot(ray.Direction, hitPoint.Normal);
-        var sinT2 = n * n * (1.0f - cosI * cosI);
+        var cFraction = cValues[1] / cValues[0]; // c2 / c1
+        var NdotI = Vector3.Dot(hitPoint.Normal, ray.Direction);
+        var cosTheta2 = System.MathF.Sqrt(1 - MathF.Pow(cFraction, 2) * (1 - MathF.Pow(NdotI, 2))); // 12.46 in the book
         
-        if (sinT2 > 1.0f) return [0.0f, 0.0f, 0.0f]; // Total internal reflection
+        // Check if the ray is totally internally reflected
+        if (cosTheta2 < 0) return [0.0f, 0.0f, 0.0f, 1.0f];
         
-        var cosT = System.MathF.Sqrt(1.0f - sinT2);
-        var refractionDirection = n * ray.Direction + (n * cosI - cosT) * hitPoint.Normal;
-        
-        refractedRay.Direction = Vector3.Normalize(refractionDirection);
+        // Calculate the refracted ray direction
+        refractedRay.Direction = cFraction * ray.Direction + (cFraction * NdotI - cosTheta2) * hitPoint.Normal;
         return Shade(refractedRay, (ushort) (depth + 1));
     }
 

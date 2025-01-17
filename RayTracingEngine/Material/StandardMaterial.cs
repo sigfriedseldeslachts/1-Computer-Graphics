@@ -1,4 +1,5 @@
 using System.Numerics;
+using RayTracingEngine.Rendering;
 
 namespace RayTracingEngine.Material;
 
@@ -17,6 +18,16 @@ public class StandardMaterial
     public StandardMaterial()
     {
         CalculateEtaFresnel();
+    }
+
+    public virtual Vector4 GetDiffuseColor(HitPoint hit)
+    {
+        return DiffuseColor;
+    }
+
+    public virtual Vector4 GetAmbientColor(HitPoint hit)
+    {
+        return AmbientColor;
     }
 
     /// <summary>
