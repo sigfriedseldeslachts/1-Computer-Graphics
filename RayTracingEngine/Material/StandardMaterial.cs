@@ -20,14 +20,26 @@ public class StandardMaterial
         CalculateEtaFresnel();
     }
 
-    public virtual Vector4 GetDiffuseColor(HitPoint hit)
+    public virtual float[] GetDiffuseColor(HitPoint hit)
     {
-        return DiffuseColor;
+        return
+        [
+            DiffuseColor.X,
+            DiffuseColor.Y,
+            DiffuseColor.Z,
+            DiffuseColor.W
+        ];
     }
 
-    public virtual Vector4 GetAmbientColor(HitPoint hit)
+    public virtual float[] GetAmbientColor(HitPoint hit)
     {
-        return AmbientColor;
+        return
+        [
+            AmbientColor.X,
+            AmbientColor.Y,
+            AmbientColor.Z,
+            AmbientColor.W
+        ];
     }
 
     /// <summary>

@@ -13,12 +13,13 @@ public class CookTorrance
     /// <returns></returns>
     public static float FresnelFunction(float c, float eta)
     {
+        //c = System.Math.Clamp(c, 0.0f, 1.0f);
         var g = MathF.Sqrt(MathF.Pow(eta, 2) + MathF.Pow(c, 2) - 1);
 
         var gPc = g + c;
         var gMc = g - c;
 
-        var secondFraction = (c * gPc - 1) / (c * gMc + 1);
+        var secondFraction = (c * gPc - 1) / (c * gMc + 1 + 1e-6f);
         return 0.5f * MathF.Pow(gMc / gPc, 2) * (1 + MathF.Pow(secondFraction, 2));
     }
 

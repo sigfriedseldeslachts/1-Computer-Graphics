@@ -1,5 +1,6 @@
 using System.Numerics;
 using RayTracingEngine.Material;
+using RayTracingEngine.Math;
 using RayTracingEngine.Primitives;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -25,6 +26,8 @@ public class Camera
     private int _nearPlaneDistance = 10;
     private float _H;
     private float _W;
+    private int _samplesPerPixel = 1;
+    private float _pixelSamplesScale = 1.0f / 1.0f;
     
     private readonly ParallelOptions _parallelOptions = new() { MaxDegreeOfParallelism = 6 };
     
@@ -68,25 +71,44 @@ public class Camera
     
     private void ProcessPixel(int rowPos, int colPos)
     {
+        // Do anti-aliasing
+        var color = new float[4];
+        
         var ray = new Ray(Position, Vector3.Zero);
 
         // We want the center to be X = 0, Y = 0. Thus, we need to shift everything by half the width and height
         var x = _W * (2*colPos / (float) Width - 1);
         var y = _H * (2*rowPos / (float) Height - 1);
         
-        // Now we need to create a ray direction
-        ray.Direction = Vector3.Normalize(_n * _nearPlaneDistance + x * _u + y * _v);
-        
-        var colors = _shader.Shade(ray);
+        for (var sample = 0; sample < _samplesPerPixel; sample++)
+        {
+            // Set the ray direction with a random offset
+            var randomX = Utils.RandomFloat(-0.1f, 0.1f);
+            var randomY = Utils.RandomFloat(-0.1f, 0.1f);
+            ray.Direction = Vector3.Normalize(_n * _nearPlaneDistance + (x) * _u + (y) * _v);
+            
+            var shadeColor = _shader.Shade(ray);
+            color[0] += shadeColor[0];
+            color[1] += shadeColor[1];
+            color[2] += shadeColor[2];
+            color[3] += shadeColor[3];
+        }
+
+        // Clamp and scale the values
+        color = Utils.ClampRgbaValues(color);
+        color[0] *= _pixelSamplesScale;
+        color[1] *= _pixelSamplesScale;
+        color[2] *= _pixelSamplesScale;
+        color[3] *= _pixelSamplesScale;
         
         // Set the pixel color in the active buffer
         if (_activeBuffer == 0)
         {
-            _imageBuffer0[colPos, rowPos] = new Rgba32(colors[0], colors[1], colors[2]);
+            _imageBuffer0[colPos, rowPos] = new Rgba32(color[0], color[1], color[2]);
         }
         else
         {
-            _imageBuffer1[colPos, rowPos] = new Rgba32(colors[0], colors[1], colors[2]);
+            _imageBuffer1[colPos, rowPos] = new Rgba32(color[0], color[1], color[2]);
         }
     }
     

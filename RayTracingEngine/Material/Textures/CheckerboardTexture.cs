@@ -10,14 +10,14 @@ public class CheckerboardTexture : StandardMaterial
     
     public Vector3 CheckerboardScale { get; set; } = new(0.5f, 0.5f, 0.5f);
 
-    public override Vector4 GetDiffuseColor(HitPoint hit)
+    public override float[] GetDiffuseColor(HitPoint hit)
     {
-        return GetCheckerboardPatternForCoords(hit.Point) ? DiffuseColor : new Vector4(0.1f, 0.1f, 0.1f, 1);
+        return GetCheckerboardPatternForCoords(hit.Point) ? base.GetAmbientColor(null!) : [0.1f, 0.1f, 0.1f, 1];
     }
 
-    public override Vector4 GetAmbientColor(HitPoint hit)
+    public override float[] GetAmbientColor(HitPoint hit)
     {
-        return GetCheckerboardPatternForCoords(hit.Point) ? AmbientColor : new Vector4(0, 0, 0, 1);
+        return GetCheckerboardPatternForCoords(hit.Point) ? base.GetAmbientColor(null!) : [0, 0, 0, 1];
     }
 
     private bool GetCheckerboardPatternForCoords(Vector3 point)
