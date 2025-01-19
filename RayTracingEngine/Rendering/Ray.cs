@@ -10,7 +10,7 @@ public class Ray
     
     public Vector4 StartVec4 => new(Start, 1);
     public Vector4 DirectionVec4 => new(Direction, 0);
-    public List<AObject>? InsideObjects { get; set; }
+    public List<AObject> InsideObjects { get; set; } = new();
 
     public Ray(Vector3 start, Vector3 direction)
     {
@@ -18,11 +18,11 @@ public class Ray
         Direction = direction;
     }
     
-    public Ray(Vector3 start, Vector3 direction, List<AObject>? insideObjects)
+    public Ray(Vector3 start, Vector3 direction, List<AObject> insideObjects)
     {
         Start = start;
         Direction = direction;
-        if (insideObjects != null) InsideObjects = [..insideObjects]; // To prevent pass-by-reference
+        InsideObjects = [..insideObjects];  // To prevent pass-by-reference
     }
     
     public Vector3 GetPoint(float t)

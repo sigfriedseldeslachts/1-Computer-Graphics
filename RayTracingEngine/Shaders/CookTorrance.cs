@@ -13,7 +13,7 @@ public class CookTorrance
     /// <returns></returns>
     public static float FresnelFunction(float c, float eta)
     {
-        //c = System.Math.Clamp(c, 0.0f, 1.0f);
+        c = System.Math.Clamp(c, 0.0f, 1.0f);
         var g = MathF.Sqrt(MathF.Pow(eta, 2) + MathF.Pow(c, 2) - 1);
 
         var gPc = g + c;

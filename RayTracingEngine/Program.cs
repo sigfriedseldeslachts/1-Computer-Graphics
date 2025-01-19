@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using RayTracingEngine.Material;
+using RayTracingEngine.Material.Textures;
 using RayTracingEngine.Primitives;
 using RayTracingEngine.Rendering;
 using RayTracingEngine.Textures;
@@ -31,12 +32,11 @@ public class Program
         // Apply materials
         groundPlane.Material = new CheckerboardTexture();
         skyPlane.Material = new SkyMaterial();
-        backPlane.Material = new EmeraldMaterial();
+        backPlane.Material = new WoodGrainTexture();
         cube.Material = new GoldMaterial();
-        
         surfaceNormalSphere.Material = new SurfaceNormalTexture();
-        glassSphere.Material = new GlassMaterial();
-        metallicSphere.Material = new MetalMaterial();
+        glassSphere.Material = new MetalMaterial();
+        metallicSphere.Material = new GlassMaterial();
         
         // Create the scene
         var scene = new Scene();

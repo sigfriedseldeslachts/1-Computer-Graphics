@@ -83,8 +83,8 @@ public class Camera
         for (var sample = 0; sample < _samplesPerPixel; sample++)
         {
             // Set the ray direction with a random offset
-            var randomX = Utils.RandomFloat(-0.1f, 0.1f);
-            var randomY = Utils.RandomFloat(-0.1f, 0.1f);
+            //var randomX = Utils.RandomFloat(-0.1f, 0.1f);
+            //var randomY = Utils.RandomFloat(-0.1f, 0.1f);
             ray.Direction = Vector3.Normalize(_n * _nearPlaneDistance + (x) * _u + (y) * _v);
             
             var shadeColor = _shader.Shade(ray);

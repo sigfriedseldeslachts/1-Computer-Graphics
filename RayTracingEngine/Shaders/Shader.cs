@@ -15,8 +15,7 @@ public class Shader(Scene scene)
     private const float Epsilon = 0.001f;
     
     private const float ReflectionContribution = 0.1f;
-    private const float RefractionContribution = 0.1f;
-    private const float ShadingContribution = 1.0f - ReflectionContribution - RefractionContribution;
+    private const float ShadingContribution = 0.9f - ReflectionContribution;
     private float[] AmbientColor { get; } = [0.1f, 0.1f, 0.1f, 1.0f];
     private Scene Scene { get; set; } = scene;
     
@@ -27,11 +26,13 @@ public class Shader(Scene scene)
     
     public float[] Shade(Ray ray, ushort depth = 0)
     {
-        if (depth > MaxDepth) return [0, 0, 0, 0]; // Stop at max depth
-        
         // Get the hit point
         var hitPoint = Scene.GetBestHit(ray);
         if (hitPoint == null) return AmbientColor; // Return the ambient color if no hit
+        if (hitPoint.IsEntering)
+        {
+            ray.InsideObjects.Add(hitPoint.Object);
+        }
         
         // Create a feeler ray to check for shadows with a small offset
         var feelerRay = new Ray(hitPoint.Point - Epsilon * ray.Direction, Vector3.Zero);
@@ -62,7 +63,7 @@ public class Shader(Scene scene)
             var h = Vector3.Normalize(v + s); // Halfway vector
         
             var NdotS = Vector3.Dot(hitPoint.Normal, s);
-            var NdotH = Vector3.Dot(hitPoint.Normal, h);
+            var NdotH = System.Math.Clamp(Vector3.Dot(hitPoint.Normal, h), -1.0f, 1.0f);
             //var VdotH = Vector3.Dot(v, h);
             var HdotS = Vector3.Dot(h, s);
 
@@ -75,10 +76,12 @@ public class Shader(Scene scene)
             {
                 var specular = light.Color[i] * kS * CookTorrance.FresnelFunction(NdotS, hitPoint.Object.Material.EtaFresnel[i]) * DtimesG / NdotV;
                 var diffuse = light.Color[i] * kD * materialColor[i];
-
-                colorValues[i] += specular + diffuse;
+                colorValues[i] += System.Math.Clamp(specular, 0.0f, 1.0f) + diffuse;
             }
         }
+        
+        // Stop here at the maximum depth
+        if (depth > MaxDepth) return Utils.ClampRgbaValues(colorValues);
         
         // Check if the object is reflective enough to warrant a reflection
         float[] reflectionColors = [0.0f, 0.0f, 0.0f, 1.0f];
@@ -97,13 +100,13 @@ public class Shader(Scene scene)
         // Sum all together with their respective coefficients
         colorValues[0] = ShadingContribution * colorValues[0]
                           + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[0] * ReflectionContribution
-                          + hitPoint.Object.Material.TransparencyCoefficient * refractedColors[0] * RefractionContribution;
+                          + hitPoint.Object.Material.TransparencyCoefficient * refractedColors[0];
         colorValues[1] = ShadingContribution * colorValues[1]
                           + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[1] * ReflectionContribution
-                          + hitPoint.Object.Material.TransparencyCoefficient * refractedColors[1] * RefractionContribution;
+                          + hitPoint.Object.Material.TransparencyCoefficient * refractedColors[1];
         colorValues[2] = ShadingContribution * colorValues[2]
                           + hitPoint.Object.Material.ReflectionCoefficient * reflectionColors[2] * ReflectionContribution
-                          + hitPoint.Object.Material.TransparencyCoefficient * refractedColors[2] * RefractionContribution;
+                          + hitPoint.Object.Material.TransparencyCoefficient * refractedColors[2];
         
         
         // Clamp RGB values between 0-1 and return
@@ -123,21 +126,24 @@ public class Shader(Scene scene)
     
     private float[] CalculateRefraction(HitPoint hitPoint, Ray ray, ushort depth)
     {
-        var refractedRay = new Ray(Vector3.Zero, Vector3.Zero, ray.InsideObjects ?? []);
+        var refractedRay = new Ray(hitPoint.Point - Epsilon * hitPoint.Normal, Vector3.Zero, ray.InsideObjects ?? []);
         var cValues = GetRefractiveIndexesFromRay(hitPoint, ray, refractedRay);
         
-        var cFraction = cValues[1] / cValues[0]; // c2 / c1
-        var NdotI = Vector3.Dot(hitPoint.Normal, ray.Direction);
-        var cosTheta2 = MathF.Sqrt(1 - MathF.Pow(cFraction, 2) * (1 - MathF.Pow(NdotI, 2))); // 12.46 in the book
+        var n = cValues[0] / cValues[1];
+        var cosI = -Vector3.Dot(ray.Direction, hitPoint.Normal);
+        var sinT2 = MathF.Pow(n, 2) * (1.0f - cosI * cosI);
         
-        // Check if the ray is totally internally reflected
-        if (cosTheta2 < 0) return [0.0f, 0.0f, 0.0f, 1.0f];
+        if (sinT2 > 1.0f) return [0.0f, 0.0f, 0.0f]; // Total internal reflection
         
-        // Calculate the refracted ray direction
-        refractedRay.Direction = cFraction * ray.Direction + (cFraction * NdotI - cosTheta2) * hitPoint.Normal;
-        return Shade(refractedRay, (ushort) (depth + 1));
+        var cosT = MathF.Sqrt(1.0f - sinT2);
+        var refractionDirection = n * ray.Direction + (n * cosI - cosT) * hitPoint.Normal;
+        
+        refractedRay.Direction = Vector3.Normalize(refractionDirection);
+        var result = Shade(refractedRay, (ushort) (depth + 1));
+        return result;
     }
 
+    
     /// <summary>
     /// Returns the correct c1 and c2 for the refraction calculation.
     /// Also updates the refractive indexes list. 
@@ -148,6 +154,8 @@ public class Shader(Scene scene)
     /// <returns></returns>
     private float[] GetRefractiveIndexesFromRay(HitPoint hitPoint, Ray ray, Ray refractedRay)
     {
+        float c1 = 1.0f, c2 = 1.0f;
+        
         // Check if we are entering or exiting the object and add or remove the object from the list respectively
         if (hitPoint.IsEntering)
         {
@@ -158,14 +166,20 @@ public class Shader(Scene scene)
             refractedRay.InsideObjects.Remove(hitPoint.Object);
         }
         
-        // From the original ray find c1, if no objects use air. Otherwise, use the latest object.
-        var c1 = ray.InsideObjects == null || ray.InsideObjects.Count == 0 ? 1.0f 
-            : ray.InsideObjects[^1].Material.RefractionIndex;
+        // If there is an object inside the ray, use its refraction index
+        if (ray.InsideObjects.Count > 0)
+        {
+            c1 = ray.InsideObjects[^1].Material.RefractionIndex;
+        }
         
-        // Same for c2 but then for the refracted ray
-        var c2 = refractedRay.InsideObjects.Count == 0 ? 1.0f
-            : refractedRay.InsideObjects[^1].Material.RefractionIndex;
+        // If there is an object inside the refracted ray, use its refraction index
+        if (refractedRay.InsideObjects.Count > 0)
+        {
+            c2 = refractedRay.InsideObjects[^1].Material.RefractionIndex;
+        }
         
-        return [c1, c2];
+        return [
+            c1, c2
+        ];
     }
 }
