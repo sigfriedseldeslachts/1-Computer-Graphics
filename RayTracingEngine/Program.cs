@@ -12,7 +12,7 @@ public class Program
         var camera = new Camera(width, height);
         var loader = new SceneLoader(camera);
         
-        loader.AllInOneScene();
+        loader.RefractionTest();
         
         // Create the window object
         var window = new ViewWindow(width, height, camera);

@@ -26,8 +26,20 @@ public class Camera
     private int _nearPlaneDistance = 10;
     private float _H;
     private float _W;
-    private int _samplesPerPixel = 1;
-    private float _pixelSamplesScale = 1.0f / 1.0f;
+    
+    private bool _antiAliasing = true;
+    private float _antiAliasingMultiplier = 0.005f;
+    private readonly float[][] _antiAliasedSquares =
+    [
+        [-1f, 1f], // Top left
+        [0f, 1f], // Top center
+        [1f, 1f], // Top right
+        [-1f, 0], // Middle left
+        [0f, 0f], // Middle center
+        [1f, 0f], // Middle right
+        [-1f, -1f], // Bottom left
+        [1f, -1f] // Bottom right
+    ];
     
     private readonly ParallelOptions _parallelOptions = new() { MaxDegreeOfParallelism = 6 };
 
@@ -74,7 +86,7 @@ public class Camera
     private void ProcessPixel(int rowPos, int colPos)
     {
         // Do anti-aliasing
-        var color = new float[4];
+        var color = new float[3];
         
         var ray = new Ray(Position, Vector3.Zero);
 
@@ -82,26 +94,29 @@ public class Camera
         var x = _W * (2*colPos / (float) Width - 1);
         var y = _H * (2*rowPos / (float) Height - 1);
         
-        for (var sample = 0; sample < _samplesPerPixel; sample++)
+        for (var sample = 0; sample < (_antiAliasing ? _antiAliasedSquares.Length-1 : 1); sample++)
         {
             // Set the ray direction with a random offset
-            //var randomX = Utils.RandomFloat(-0.1f, 0.1f);
-            //var randomY = Utils.RandomFloat(-0.1f, 0.1f);
-            ray.Direction = Vector3.Normalize(_n * _nearPlaneDistance + (x) * _u + (y) * _v);
+            var randomValues = _antiAliasedSquares[sample];
+            ray.Direction = Vector3.Normalize(
+                _n * _nearPlaneDistance
+                + (x + randomValues[0] * _antiAliasingMultiplier) * _u
+                + (y + randomValues[1] * _antiAliasingMultiplier) * _v
+            );
             
             var shadeColor = _shader.Shade(ray);
             color[0] += shadeColor[0];
             color[1] += shadeColor[1];
             color[2] += shadeColor[2];
-            color[3] += shadeColor[3];
         }
 
-        // Clamp and scale the values
-        color = Utils.ClampRgbaValues(color);
-        color[0] *= _pixelSamplesScale;
-        color[1] *= _pixelSamplesScale;
-        color[2] *= _pixelSamplesScale;
-        color[3] *= _pixelSamplesScale;
+        // Scale the values
+        if (_antiAliasing)
+        {
+            color[0] /= _antiAliasedSquares.Length;
+            color[1] /= _antiAliasedSquares.Length;
+            color[2] /= _antiAliasedSquares.Length;
+        }
         
         // Set the pixel color in the active buffer
         if (_activeBuffer == 0)
@@ -123,4 +138,6 @@ public class Camera
         return _imageBuffer0;
         //return _activeBuffer == 0 ? _imageBuffer1 : _imageBuffer0;
     }
+    
+    
 }
