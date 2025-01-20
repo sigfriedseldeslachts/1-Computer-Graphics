@@ -18,7 +18,7 @@ public class Camera
     private ushort _activeBuffer;
     private Image<Rgba32> _imageBuffer0;
     private Image<Rgba32> _imageBuffer1;
-    private readonly Shader _shader;
+    private Shader _shader;
     
     private Vector3 _n;
     private Vector3 _u;
@@ -30,18 +30,20 @@ public class Camera
     private float _pixelSamplesScale = 1.0f / 1.0f;
     
     private readonly ParallelOptions _parallelOptions = new() { MaxDegreeOfParallelism = 6 };
-    
-    public Camera(Scene scene, Vector3 position, Vector3 lookingLocation, int width, int height)
+
+    public Camera(int width, int height)
     {
-        _shader = new Shader(scene);
-        Position = position;
-        LookingLocation = lookingLocation;
         Width = width;
         Height = height;
-        
         _imageBuffer0 = new Image<Rgba32>(Width, Height);
         _imageBuffer1 = new Image<Rgba32>(Width, Height);
-        
+    }
+
+    public void SetCamera(Scene scene, Vector3 position, Vector3 lookingLocation)
+    {
+        Position = position;
+        LookingLocation = lookingLocation;
+        _shader = new Shader(scene);
         UpdateVectors();
     }
 

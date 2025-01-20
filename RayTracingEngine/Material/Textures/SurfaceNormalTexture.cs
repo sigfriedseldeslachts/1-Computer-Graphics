@@ -26,4 +26,14 @@ public class SurfaceNormalTexture : StandardMaterial
             1
         ];
     }
+    
+    public override float[] GetAmbientColor(HitPoint hit)
+    {
+        return [
+            (hit.Normal.X + 1) / 4,
+            (hit.Normal.Y + 1) / 4,
+            (hit.Normal.Z + 1) / 4,
+            1
+        ];
+    }
 }

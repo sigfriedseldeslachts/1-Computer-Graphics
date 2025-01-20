@@ -44,9 +44,4 @@ public class Scene
     {
         Objects.Add(obj);
     }
-    
-    public void RemoveObject(IRayTraceable obj)
-    {
-        
-    }
 }

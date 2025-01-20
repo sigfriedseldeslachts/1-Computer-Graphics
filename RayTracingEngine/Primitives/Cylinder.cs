@@ -5,74 +5,100 @@ namespace RayTracingEngine.Primitives;
 
 public class Cylinder : AObject
 {
-    private float _radius;
+    private const float _height = 1.0f, _radius = 1.0f;
     
-    public Cylinder(float radius, Vector3 position, Vector3 rotation, Vector3 scale) : base(position, rotation, scale)
+    public Cylinder(Vector3 position, Vector3 rotation, Vector3 scale) : base(position, rotation, scale)
     {
-        // Check if radius is between 0 and 1
-        if (radius is < 0 or > 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(radius), "Radius must be between 0 and 1");
-        }
-        
-        _radius = radius;
         BuildTransformMatrix(position, rotation, scale);
     }
 
     public override float[] SimpleHitLocal(Ray ray)
     {
-        var d = (_radius - 1) * ray.Direction.Z;
-        var f = 1 + (_radius - 1) * ray.Start.Z;
-        
-        var a = MathF.Pow(ray.Direction.X, 2) + MathF.Pow(ray.Direction.Y, 2);
-        var b = ray.Start.X * ray.Direction.X + ray.Start.Y * ray.Direction.Y - f*d;
-        var c = MathF.Pow(ray.Start.X, 2) + MathF.Pow(ray.Start.Y, 2) - MathF.Pow(f, 2);
-        
-        var discriminant = MathF.Pow(b, 2) - a*c;
-        if (discriminant < 0) return []; // No hit
+        var hits = new List<float>();
 
-        discriminant = MathF.Sqrt(discriminant);
-        var t1 = (-b + discriminant) / a;
-        var t2 = (-b - discriminant) / a;
+        // Check for intersection with the cylindrical surface
+        var a = ray.Direction.X * ray.Direction.X + ray.Direction.Z * ray.Direction.Z;
+        var b = 2 * (ray.Start.X * ray.Direction.X + ray.Start.Z * ray.Direction.Z);
+        var c = ray.Start.X * ray.Start.X + ray.Start.Z * ray.Start.Z - _radius * _radius;
 
-        return [t1, t2];
+        var discriminant = b * b - 4 * a * c;
+        if (discriminant >= 0)
+        {
+            var sqrtDiscriminant = MathF.Sqrt(discriminant);
+            var t1 = (-b - sqrtDiscriminant) / (2 * a);
+            var t2 = (-b + sqrtDiscriminant) / (2 * a);
+
+            if (t1 > 0)
+            {
+                var y1 = ray.Start.Y + t1 * ray.Direction.Y;
+                if (y1 >= 0 && y1 <= _height)
+                {
+                    hits.Add(t1);
+                }
+            }
+
+            if (t2 > 0)
+            {
+                var y2 = ray.Start.Y + t2 * ray.Direction.Y;
+                if (y2 >= 0 && y2 <= _height)
+                {
+                    hits.Add(t2);
+                }
+            }
+        }
+
+        // Check for intersection with the top and bottom faces
+        if (MathF.Abs(ray.Direction.Y) > 1e-6)
+        {
+            var tTop = (_height - ray.Start.Y) / ray.Direction.Y;
+            if (tTop > 0)
+            {
+                var xTop = ray.Start.X + tTop * ray.Direction.X;
+                var zTop = ray.Start.Z + tTop * ray.Direction.Z;
+                if (xTop * xTop + zTop * zTop <= _radius * _radius)
+                {
+                    hits.Add(tTop);
+                }
+            }
+
+            var tBottom = -ray.Start.Y / ray.Direction.Y;
+            if (tBottom > 0)
+            {
+                var xBottom = ray.Start.X + tBottom * ray.Direction.X;
+                var zBottom = ray.Start.Z + tBottom * ray.Direction.Z;
+                if (xBottom * xBottom + zBottom * zBottom <= _radius * _radius)
+                {
+                    hits.Add(tBottom);
+                }
+            }
+        }
+
+        return hits.ToArray();
     }
 
     public override HitPoint?[] HitLocal(Ray ray, Ray worldRay)
     {
-        return [];
+        var hits = SimpleHitLocal(ray);
+        if (hits.Length == 0) return [];
         
-        var values = SimpleHitLocal(ray);
-        if (values.Length == 0) return [];
-        var hits = new HitPoint?[2];
-        
-        if (values[0] > 0.00001 || values[0] == 0)
+        // For each hit, calculate the hit point
+        return hits.Select(hit =>
         {
-            var hit = ray.GetPoint(values[0]);
-            hits[0] = new HitPoint
+            var hitPoint = ray.GetPoint(hit);
+            var normal = Vector3.Normalize(hitPoint with { Y = 0 });
+            
+            // Check if the ray is entering or exiting the object
+            var isEntering = Vector3.Dot(ray.Direction, normal) < 0;
+            
+            return new HitPoint
             {
                 Object = this,
-                HitTime = values[0],
-                Point = worldRay.GetPoint(values[0]),
-                Normal = Vector3.Normalize(hit - GlobalPosition),
-                IsEntering = true
+                HitTime = hit,
+                Point = worldRay.GetPoint(hit),
+                Normal = normal,
+                IsEntering = isEntering
             };
-        }
-
-        if (values[1] > 0.00001)
-        {
-            var hit = ray.GetPoint(values[1]);
-            hits[1] = new HitPoint
-            {
-                Object = this,
-                HitTime = values[1],
-                Point = worldRay.GetPoint(values[1]),
-                Normal = Vector3.Normalize(hit - GlobalPosition),
-                IsEntering = false
-            };
-        }
-
-        return hits;
+        }).ToArray();
     }
 
     public override bool HasShadowHit(Ray ray)

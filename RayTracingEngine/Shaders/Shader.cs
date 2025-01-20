@@ -126,21 +126,25 @@ public class Shader(Scene scene)
     
     private float[] CalculateRefraction(HitPoint hitPoint, Ray ray, ushort depth)
     {
-        var refractedRay = new Ray(hitPoint.Point - Epsilon * hitPoint.Normal, Vector3.Zero, ray.InsideObjects ?? []);
+        var refractedRay = new Ray(Vector3.Zero, Vector3.Zero, ray.InsideObjects ?? []);
         var cValues = GetRefractiveIndexesFromRay(hitPoint, ray, refractedRay);
         
-        var n = cValues[0] / cValues[1];
-        var cosI = -Vector3.Dot(ray.Direction, hitPoint.Normal);
-        var sinT2 = MathF.Pow(n, 2) * (1.0f - cosI * cosI);
+        var cFraction = cValues[1] / cValues[0]; // c2 / c1
+        var NdotDir = Vector3.Dot(hitPoint.Normal, ray.Direction);
+        var cosTheta2 = 1 - MathF.Pow(cFraction, 2) * (1 - MathF.Pow(NdotDir, 2));
         
-        if (sinT2 > 1.0f) return [0.0f, 0.0f, 0.0f]; // Total internal reflection
-        
-        var cosT = MathF.Sqrt(1.0f - sinT2);
-        var refractionDirection = n * ray.Direction + (n * cosI - cosT) * hitPoint.Normal;
-        
+        // Check if the refraction is possible
+        if (cosTheta2 <= 0)
+        {
+            return [0.0f, 0.0f, 0.0f, 1.0f];
+        }
+        cosTheta2 = MathF.Sqrt(cosTheta2);
+         
+        // Calculate the refraction direction
+        var refractionDirection = cFraction * ray.Direction + (cFraction * NdotDir - cosTheta2) * hitPoint.Normal;
         refractedRay.Direction = Vector3.Normalize(refractionDirection);
-        var result = Shade(refractedRay, (ushort) (depth + 1));
-        return result;
+        refractedRay.Start = hitPoint.Point + Epsilon * refractedRay.Direction;
+        return Shade(refractedRay, (ushort) (depth + 1));
     }
 
     
