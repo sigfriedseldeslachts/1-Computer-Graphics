@@ -82,6 +82,7 @@ public class Cylinder : AObject
         if (hits.Length == 0) return [];
         
         // For each hit, calculate the hit point
+        // TODO: Improve this as it doesn't always work properly!
         return hits.Select(hit =>
         {
             var hitPoint = ray.GetPoint(hit);

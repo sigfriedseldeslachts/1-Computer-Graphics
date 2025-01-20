@@ -8,15 +8,10 @@ public class Utils
     {
         return
         [
-            /*System.Math.Clamp(values[0], min, max),
-            System.Math.Clamp(values[1], min, max),
-            System.Math.Clamp(values[2], min, max),
-            System.Math.Clamp(values[3], min, max)*/
-            
-            float.IsNaN(values[0]) ? 0 : System.Math.Clamp(values[0], min, max),
-               float.IsNaN(values[1]) ? 0 : System.Math.Clamp(values[1], min, max),
-               float.IsNaN(values[2]) ? 0 : System.Math.Clamp(values[2], min, max),
-               float.IsNaN(values[3]) ? 0 : System.Math.Clamp(values[3], min, max)
+            float.IsNaN(values[0]) ? 0 : System.Math.Clamp(values[0], min, max), 
+            float.IsNaN(values[1]) ? 0 : System.Math.Clamp(values[1], min, max), 
+            float.IsNaN(values[2]) ? 0 : System.Math.Clamp(values[2], min, max), 
+            float.IsNaN(values[3]) ? 0 : System.Math.Clamp(values[3], min, max)
         ];
     }
     

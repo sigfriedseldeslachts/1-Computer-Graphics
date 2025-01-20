@@ -23,14 +23,25 @@ public class SceneLoader
         
         var groundPlane = new Plane(new Vector3(0, -2, 0), new Vector3(0, 0, 0), new Vector3(10, 10, 10));
         var glassSphere = new Sphere(new Vector3(0, 0, 0),  Vector3.Zero, Vector3.One);
+        var cylinder = new Cylinder(new Vector3(2, 0.5f, -5), Vector3.Zero, new Vector3(1, 3, 1));
+        var cube = new Cube(new Vector3(-2f, 1f, -3), Vector3.Zero, new Vector3(1, 1, 1));
         
-        groundPlane.Material = new CheckerboardTexture();
+        groundPlane.Material = new CheckerboardTexture
+        {
+            DiffuseColor = new Vector4(0.5f, 0.1f, 0.1f, 1),
+            SecondColorDiffuse = new Vector4(0.1f, 0.1f, 0.5f, 1),
+            AmbientColor = new Vector4(0.3f, 0.1f, 0.1f, 1),
+            SecondColorAmbient = new Vector4(0.1f, 0.1f, 0.3f, 1),
+        };
         glassSphere.Material = new GlassMaterial();
+        cylinder.Material = new SkyMaterial();
         
         var scene = new Scene();
         scene.Lights.Add(light);
         scene.AddObject(groundPlane);
         scene.AddObject(glassSphere);
+        scene.AddObject(cylinder);
+        scene.AddObject(cube);
         
         Camera.SetCamera(scene, new Vector3(0,0,10), new Vector3(0,0,0));
     }
@@ -52,7 +63,7 @@ public class SceneLoader
         
         // Place a cube behind the mirror
         var cube = new Cube(new Vector3(-4, 1, -3), Vector3.Zero, new Vector3(1, 1, 1));
-        cube.Material = new SkyMaterial();
+        cube.Material = new WoodGrainTexture();
         
         var scene = new Scene();
         scene.Lights.Add(light);
@@ -74,12 +85,13 @@ public class SceneLoader
         var groundPlane = new Plane(new Vector3(0, -2, 0), new Vector3(0, 0, 0), new Vector3(10, 10, 10));
         var skyPlane = new Plane(new Vector3(0, 15, 0), new Vector3(-0.5235988f, 0, 0), new Vector3(10, 10, 10));
         var backPlane = new Plane(new Vector3(0, 0, 10), new Vector3(0.5235988f, 0, 0), new Vector3(10, 10, 10));
-        var cube = new Cube(new Vector3(1, 0.5f, -2f), Vector3.Zero, Vector3.One);
+        var cube = new Cube(new Vector3(1, 0f, -2f), Vector3.Zero, Vector3.One);
+        var cylinder = new Cylinder(new Vector3(0, 2, -5f), new Vector3(1, 1, MathF.PI / 2.0f), Vector3.One);
         
         var metalSphere = new Sphere(new Vector3(-2f, 0, -1.5f),  Vector3.Zero, Vector3.One);
         var surfNormSphere = new Sphere(new Vector3(-1f, 2f, 0),  Vector3.Zero, Vector3.One);
         var glassSphere = new Sphere(new Vector3(-4f, 0, 0),  Vector3.Zero, Vector3.One);
-        var sphereBehindGlass = new Sphere(new Vector3(-7f, 0, -1f),  Vector3.Zero, Vector3.One);
+        var sphereBehindGlass = new Sphere(new Vector3(-10f, 0, -1.5f),  Vector3.Zero, Vector3.One);
         
         // Apply materials
         groundPlane.Material = new CheckerboardTexture();
@@ -89,7 +101,7 @@ public class SceneLoader
         metalSphere.Material = new MetalMaterial();
         surfNormSphere.Material = new SurfaceNormalTexture();
         glassSphere.Material = new GlassMaterial();
-        sphereBehindGlass.Material = new EmeraldMaterial();
+        //sphereBehindGlass.Material = new EmeraldMaterial();
         
         // Create the scene
         var scene = new Scene();
@@ -99,6 +111,7 @@ public class SceneLoader
         scene.AddObject(skyPlane);
         scene.AddObject(backPlane);
         scene.AddObject(cube);
+        scene.AddObject(cylinder);
         scene.AddObject(metalSphere);
         scene.AddObject(surfNormSphere);
         scene.AddObject(glassSphere);
